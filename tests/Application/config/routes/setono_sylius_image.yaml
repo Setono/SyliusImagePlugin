@@ -1,0 +1,2 @@
+setono_sylius_image:
+    resource: "@SetonoSyliusImagePlugin/Resources/config/routes.yaml"

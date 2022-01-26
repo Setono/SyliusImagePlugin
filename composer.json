@@ -1,6 +1,6 @@
 {
-    "name": "setono/sylius-plugin-skeleton",
-    "description": "Acme example plugin for Sylius.",
+    "name": "setono/sylius-image-plugin",
+    "description": "Setono example plugin for Sylius.",
     "license": "MIT",
     "type": "sylius-plugin",
     "keywords": [
@@ -41,19 +41,24 @@
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
-            "Acme\\SyliusExamplePlugin\\": "src/"
+            "Setono\\SyliusImagePlugin\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\Acme\\SyliusExamplePlugin\\": "tests/"
+            "Tests\\Setono\\SyliusImagePlugin\\": "tests/"
         },
         "classmap": [
             "tests/Application/Kernel.php"
         ]
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "symfony/thanks": true,
+            "dealerdirect/phpcodesniffer-composer-installer": false,
+            "ergebnis/composer-normalize": true
+        }
     },
     "extra": {
         "branch-alias": {
@@ -66,7 +71,7 @@
             "psalm"
         ],
         "check-style": "ecs check",
-        "ensure-test-container-exists": "[[ -f tests/Application/var/cache/test/Tests_Acme_SyliusExamplePlugin_Application_KernelTestDebugContainer.xml ]] || tests/Application/bin/console cache:warmup --env=test",
+        "ensure-test-container-exists": "[[ -f tests/Application/var/cache/test/Tests_Setono_SyliusImagePlugin_Application_KernelTestDebugContainer.xml ]] || tests/Application/bin/console cache:warmup --env=test",
         "fix-style": "ecs check --fix",
         "phpunit": "phpunit"
     }
