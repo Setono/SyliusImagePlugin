@@ -1,0 +1,73 @@
+{
+    "name": "setono/sylius-plugin-skeleton",
+    "description": "Acme example plugin for Sylius.",
+    "license": "MIT",
+    "type": "sylius-plugin",
+    "keywords": [
+        "sylius",
+        "sylius-plugin"
+    ],
+    "require": {
+        "php": ">=7.4",
+        "symfony/config": "^4.4 || ^5.0",
+        "symfony/dependency-injection": "^4.4 || ^5.0",
+        "symfony/http-kernel": "^4.4 || ^5.1.5"
+    },
+    "require-dev": {
+        "api-platform/core": "^2.6",
+        "friendsofsymfony/oauth-server-bundle": ">2.0.0-alpha.0 ^2.0@dev",
+        "lexik/jwt-authentication-bundle": "^2.14",
+        "matthiasnoback/symfony-config-test": "^4.3",
+        "matthiasnoback/symfony-dependency-injection-test": "^4.3",
+        "phpunit/phpunit": "^9.5",
+        "psalm/plugin-phpunit": "^0.16.0",
+        "psalm/plugin-symfony": "^3.1",
+        "roave/security-advisories": "dev-latest",
+        "setono/code-quality-pack": "^2.1.3",
+        "sylius/admin-api-bundle": "^1.10",
+        "sylius/sylius": "~1.10.6",
+        "symfony/debug-bundle": "^4.4 || ^5.3",
+        "symfony/dotenv": "^4.4 || ^5.3",
+        "symfony/intl": "^4.4 || ^5.3",
+        "symfony/maker-bundle": "^1.36",
+        "symfony/property-info": "^4.4 || ^5.3",
+        "symfony/serializer": "^4.4 || ^5.3",
+        "symfony/web-profiler-bundle": "^4.4 || ^5.3",
+        "symfony/webpack-encore-bundle": "^1.13"
+    },
+    "conflict": {
+        "symfony/security-bundle": "5.4.0"
+    },
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Acme\\SyliusExamplePlugin\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\Acme\\SyliusExamplePlugin\\": "tests/"
+        },
+        "classmap": [
+            "tests/Application/Kernel.php"
+        ]
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    },
+    "scripts": {
+        "analyse": [
+            "@ensure-test-container-exists",
+            "psalm"
+        ],
+        "check-style": "ecs check",
+        "ensure-test-container-exists": "[[ -f tests/Application/var/cache/test/Tests_Acme_SyliusExamplePlugin_Application_KernelTestDebugContainer.xml ]] || tests/Application/bin/console cache:warmup --env=test",
+        "fix-style": "ecs check --fix",
+        "phpunit": "phpunit"
+    }
+}
