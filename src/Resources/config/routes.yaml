@@ -1,3 +1,6 @@
+setono_sylius_image_global:
+    resource: "@SetonoSyliusImagePlugin/Resources/config/routes/global.yaml"
+
 setono_sylius_image_shop:
     resource: "@SetonoSyliusImagePlugin/Resources/config/routes/shop.yaml"
     prefix: /{_locale}

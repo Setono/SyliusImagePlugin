@@ -14,3 +14,9 @@ parameters:
 sylius_shop:
     product_grid:
         include_all_descendants: true
+
+sylius_core:
+    resources:
+        product_image:
+            classes:
+                model: Tests\Setono\SyliusImagePlugin\Application\Model\ProductImage
