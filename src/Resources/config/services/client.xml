@@ -2,8 +2,10 @@
 <container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="setono_sylius_image.processor.cloudflare"
-                 class="Setono\SyliusImagePlugin\Processor\CloudflareProcessor">
+        <service id="setono_sylius_image.client.cloudflare"
+                 class="Setono\SyliusImagePlugin\Client\Cloudflare\Client">
+            <argument type="service" id="cloudflare.client"/>
+            <argument>%env(CLOUDFLARE_ACCOUNT_IDENTIFIER)%</argument>
         </service>
     </services>
 </container>

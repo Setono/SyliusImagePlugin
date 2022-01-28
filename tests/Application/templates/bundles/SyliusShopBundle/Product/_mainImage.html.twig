@@ -1,7 +1,7 @@
 {% if product.imagesByType('thumbnail') is not empty %}
-    {% set path = product.imagesByType('thumbnail').first|ssi_image(filter|default('sylius_shop_product_thumbnail')) %}
+    {% set path = product.imagesByType('thumbnail').first.path|ssi_image_path(filter|default('sylius_shop_product_thumbnail')) %}
 {% elseif product.images.first %}
-    {% set path = product.images.first|ssi_image(filter|default('sylius_shop_product_thumbnail')) %}
+    {% set path = product.images.first.path|ssi_image_path(filter|default('sylius_shop_product_thumbnail')) %}
 {% else %}
     {% set path = '//placehold.it/200x200' %}
 {% endif %}

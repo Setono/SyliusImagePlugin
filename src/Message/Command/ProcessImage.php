@@ -16,6 +16,7 @@ final class ProcessImage implements CommandInterface
 
     /**
      * @param class-string $class
+     * @param mixed $imageId
      */
     public function __construct(string $class, $imageId)
     {

@@ -6,7 +6,11 @@ namespace Setono\SyliusImagePlugin\Command;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectRepository;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
+use Setono\SyliusImagePlugin\Config\VariantCollectionInterface;
+use Setono\SyliusImagePlugin\Event\ProcessingStartedEvent;
 use Setono\SyliusImagePlugin\Message\Command\ProcessImage;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
@@ -26,23 +30,29 @@ final class ProcessCommand extends Command
 
     private MessageBusInterface $commandBus;
 
-    /** @var array<string, array> */
-    private array $filterSets;
+    private VariantCollectionInterface $variantCollection;
+
+    private EventDispatcherInterface $eventDispatcher;
 
     /** @var array<string, array{classes: array{model: string}}> */
     private array $resources;
 
     /**
-     * @param array<string, array> $filterSets
      * @param array<string, array{classes: array{model: string}}> $resources
      */
-    public function __construct(ManagerRegistry $managerRegistry, MessageBusInterface $commandBus, array $filterSets, array $resources)
-    {
+    public function __construct(
+        ManagerRegistry $managerRegistry,
+        MessageBusInterface $commandBus,
+        VariantCollectionInterface $variantCollection,
+        EventDispatcherInterface $eventDispatcher,
+        array $resources
+    ) {
         parent::__construct();
 
         $this->managerRegistry = $managerRegistry;
         $this->commandBus = $commandBus;
-        $this->filterSets = $filterSets;
+        $this->variantCollection = $variantCollection;
+        $this->eventDispatcher = $eventDispatcher;
         $this->resources = $resources;
     }
 
@@ -52,12 +62,33 @@ final class ProcessCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        if ($this->variantCollection->isEmpty()) {
+            $output->writeln('No variants configured');
+
+            return 0;
+        }
+
+        /** @var array<array-key, class-string> $resourcesToProcess */
+        $resourcesToProcess = [];
+
         foreach ($this->resources as $resource) {
             if (!is_a($resource['classes']['model'], ImageInterface::class, true)) {
                 continue;
             }
 
-            $this->processResource($resource['classes']['model']);
+            $resourcesToProcess[] = $resource['classes']['model'];
+        }
+
+        if ([] === $resourcesToProcess) {
+            $output->writeln(sprintf('No resources implements the interface %s', ImageInterface::class));
+
+            return 0;
+        }
+
+        $this->eventDispatcher->dispatch(new ProcessingStartedEvent());
+
+        foreach ($resourcesToProcess as $resourceToProcess) {
+            $this->processResource($resourceToProcess);
         }
 
         return 0;
@@ -69,6 +100,8 @@ final class ProcessCommand extends Command
     private function processResource(string $class): void
     {
         $manager = $this->getManager($class);
+
+        /** @var ObjectRepository $repository */
         $repository = $manager->getRepository($class);
         Assert::isInstanceOf($repository, EntityRepository::class);
 

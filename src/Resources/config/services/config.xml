@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://symfony.com/schema/dic/services"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service id="setono_sylius_image.config.variant_collection_factory"
+                 class="Setono\SyliusImagePlugin\Config\VariantCollectionFactory">
+            <argument>%liip_imagine.filter_sets%</argument>
+        </service>
+
+        <service id="setono_sylius_image.config.variant_collection"
+                 class="Setono\SyliusImagePlugin\Config\VariantCollection">
+            <factory service="setono_sylius_image.config.variant_collection_factory" method="createFromConfiguration"/>
+            <argument>%setono_sylius_image.filter_sets%</argument>
+        </service>
+    </services>
+</container>

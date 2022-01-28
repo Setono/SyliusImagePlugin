@@ -5,7 +5,20 @@
         <service id="setono_sylius_image.message.handler.process_image"
                  class="Setono\SyliusImagePlugin\Message\Handler\ProcessImageHandler">
             <argument type="service" id="doctrine"/>
-            <argument type="service" id="setono_sylius_image.processor.cloudflare"/>
+            <argument type="service" id="setono_sylius_image.variant_generator.registry"/>
+            <argument type="service" id="setono_sylius_image.config.variant_collection"/>
+            <argument type="service">
+                <service class="Gaufrette\Filesystem">
+                    <argument>%sylius.uploader.filesystem%</argument>
+                    <factory service="knp_gaufrette.filesystem_map" method="get" />
+                </service>
+            </argument>
+            <argument type="service">
+                <service class="Gaufrette\Filesystem">
+                    <argument>%setono_sylius_image.filesystem%</argument>
+                    <factory service="knp_gaufrette.filesystem_map" method="get" />
+                </service>
+            </argument>
 
             <tag name="messenger.message_handler"/>
         </service>

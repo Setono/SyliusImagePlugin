@@ -1,2 +1,9 @@
+imports:
+    - { resource: "@SetonoSyliusImagePlugin/Resources/config/app/config.yaml" }
+
 setono_sylius_image:
-    option: Option value
+    filter_sets:
+        sylius_shop_product_tiny_thumbnail: ~
+        sylius_shop_product_small_thumbnail: ~
+        sylius_shop_product_thumbnail: ~
+        sylius_shop_product_large_thumbnail: ~

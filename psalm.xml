@@ -23,4 +23,17 @@
         </pluginClass>
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
     </plugins>
+    <issueHandlers>
+        <DeprecatedMethod>
+            <errorLevel type="suppress">
+                <referencedMethod name="Symfony\Component\HttpFoundation\RequestStack::getMasterRequest"/>
+            </errorLevel>
+        </DeprecatedMethod>
+        <PropertyNotSetInConstructor>
+            <errorLevel type="suppress">
+                <directory name="src/Client/Cloudflare/Response"/>
+            </errorLevel>
+        </PropertyNotSetInConstructor>
+        <UnnecessaryVarAnnotation errorLevel="suppress"/>
+    </issueHandlers>
 </psalm>

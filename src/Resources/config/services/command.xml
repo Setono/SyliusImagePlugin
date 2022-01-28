@@ -6,8 +6,10 @@
                  class="Setono\SyliusImagePlugin\Command\ProcessCommand">
             <argument type="service" id="doctrine"/>
             <argument type="service" id="sylius.command_bus"/><!-- todo create our own bus -->
-            <argument>%liip_imagine.filter_sets%</argument>
+            <argument type="service" id="setono_sylius_image.config.variant_collection"/>
+            <argument type="service" id="event_dispatcher"/>
             <argument>%sylius.resources%</argument>
+
             <tag name="console.command"/>
         </service>
     </services>

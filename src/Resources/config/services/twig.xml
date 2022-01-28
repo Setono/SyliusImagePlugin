@@ -9,6 +9,16 @@
 
         <service id="setono_sylius_image.twig.runtime"
                  class="Setono\SyliusImagePlugin\Twig\Runtime">
+            <argument type="service">
+                <service class="Gaufrette\Filesystem">
+                    <argument>%setono_sylius_image.filesystem%</argument>
+                    <factory service="knp_gaufrette.filesystem_map" method="get" />
+                </service>
+            </argument>
+            <argument type="service" id="liip_imagine.templating.filter_extension"/>
+            <argument type="service" id="request_stack"/>
+            <argument>%setono_sylius_image.public_processed_path%</argument>
+
             <tag name="twig.runtime"/>
         </service>
     </services>
