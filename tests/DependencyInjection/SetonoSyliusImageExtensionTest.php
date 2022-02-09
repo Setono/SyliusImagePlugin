@@ -19,13 +19,6 @@ final class SetonoSyliusImageExtensionTest extends AbstractExtensionTestCase
         ];
     }
 
-    protected function getMinimalConfiguration(): array
-    {
-        return [
-            'option' => 'option_value',
-        ];
-    }
-
     /**
      * @test
      */
@@ -33,6 +26,7 @@ final class SetonoSyliusImageExtensionTest extends AbstractExtensionTestCase
     {
         $this->load();
 
-        $this->assertContainerBuilderHasParameter('setono_sylius_image.option', 'option_value');
+        $this->assertContainerBuilderHasParameter('setono_sylius_image.public_processed_path', '/media/image/processed');
+        $this->assertContainerBuilderHasParameter('setono_sylius_image.filter_sets', []);
     }
 }
