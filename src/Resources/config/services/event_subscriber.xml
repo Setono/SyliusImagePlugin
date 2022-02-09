@@ -13,5 +13,10 @@
                  class="Setono\SyliusImagePlugin\EventSubscriber\IncrementTriesSubscriber">
             <tag name="kernel.event_subscriber"/>
         </service>
+
+        <service id="setono_sylius_image.event_subscriber.update_retry_at"
+                 class="Setono\SyliusImagePlugin\EventSubscriber\UpdateRetryAtSubscriber">
+            <tag name="kernel.event_subscriber"/>
+        </service>
     </services>
 </container>

@@ -24,6 +24,9 @@ trait ImageTrait
     /** @ORM\Column(type="integer", options={"default": 0}) */
     protected int $processingTries = 0;
 
+    /** @ORM\Column(type="datetime", nullable=true) */
+    protected ?DateTimeInterface $processingRetryAt = null;
+
     /**
      * @ORM\ManyToOne(targetEntity="Setono\SyliusImagePlugin\Model\VariantConfigurationInterface")
      * @ORM\JoinColumn(name="variant_configuration", referencedColumnName="id")
@@ -61,6 +64,16 @@ trait ImageTrait
     public function incrementProcessingTries(int $increment = 1): void
     {
         $this->processingTries += $increment;
+    }
+
+    public function getProcessingRetryAt(): ?DateTimeInterface
+    {
+        return $this->processingRetryAt;
+    }
+
+    public function setProcessingRetryAt(?DateTimeInterface $processingRetryAt): void
+    {
+        $this->processingRetryAt = $processingRetryAt;
     }
 
     public function getVariantConfiguration(): ?VariantConfigurationInterface

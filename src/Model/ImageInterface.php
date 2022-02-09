@@ -27,6 +27,10 @@ interface ImageInterface extends BaseImageInterface
 
     public function incrementProcessingTries(int $increment = 1): void;
 
+    public function getProcessingRetryAt(): ?DateTimeInterface;
+
+    public function setProcessingRetryAt(?DateTimeInterface $processingRetryAt): void;
+
     public function getVariantConfiguration(): ?VariantConfigurationInterface;
 
     public function setVariantConfiguration(VariantConfigurationInterface $variantConfiguration): void;
