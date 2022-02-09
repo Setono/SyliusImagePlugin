@@ -18,6 +18,7 @@ final class RegisterVariantGeneratorsPass implements CompilerPassInterface
 
         $registry = $container->getDefinition('setono_sylius_image.variant_generator.registry');
 
+        /** @var string $id */
         foreach (array_keys($container->findTaggedServiceIds('setono_sylius_image.variant_generator')) as $id) {
             $registry->addMethodCall('add', [new Reference($id)]);
         }

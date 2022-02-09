@@ -30,6 +30,7 @@ final class ProcessCommand extends Command
 
     protected static $defaultName = 'setono:sylius-image:process';
 
+    /** @var string|null */
     protected static $defaultDescription = 'Processes all image variants';
 
     private MessageBusInterface $commandBus;
