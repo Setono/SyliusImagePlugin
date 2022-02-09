@@ -25,7 +25,6 @@
         "symfony/http-client": "^4.4 || ^5.0",
         "symfony/http-client-contracts": "^1.1 || ^2.5",
         "symfony/http-foundation": "^4.4 || ^5.0.7",
-        "symfony/http-kernel": "^4.4 || ^5.1.5",
         "symfony/messenger": "^4.4 || ^5.0",
         "symfony/mime": "^4.4 || ^5.0",
         "symfony/workflow": "^4.4 || ^5.0",
@@ -81,7 +80,10 @@
     "extra": {
         "branch-alias": {
             "dev-master": "1.0-dev"
-        }
+        },
+        "unused": [
+            "symfony/http-client"
+        ]
     },
     "scripts": {
         "analyse": [
