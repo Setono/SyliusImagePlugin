@@ -8,14 +8,14 @@ final class ImageVariantFile extends \SplFileInfo
 {
     private string $variant;
 
-    private string $format;
+    private string $fileType;
 
-    public function __construct(string $filename, string $variant, string $format)
+    public function __construct(string $filename, string $fileType, string $variant)
     {
         parent::__construct($filename);
 
         $this->variant = $variant;
-        $this->format = $format;
+        $this->fileType = $fileType;
     }
 
     public function getVariant(): string
@@ -23,8 +23,8 @@ final class ImageVariantFile extends \SplFileInfo
         return $this->variant;
     }
 
-    public function getFormat(): string
+    public function getFileType(): string
     {
-        return $this->format;
+        return $this->fileType;
     }
 }

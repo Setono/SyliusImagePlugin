@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace Setono\SyliusImagePlugin\DependencyInjection;
 
+use Setono\SyliusImagePlugin\Doctrine\ORM\VariantConfigurationRepository;
+use Setono\SyliusImagePlugin\Model\VariantConfiguration;
+use Sylius\Bundle\ResourceBundle\Controller\ResourceController;
+use Sylius\Bundle\ResourceBundle\Form\Type\DefaultResourceType;
+use Sylius\Bundle\ResourceBundle\SyliusResourceBundle;
+use Sylius\Component\Resource\Factory\Factory;
+use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -21,6 +28,9 @@ final class Configuration implements ConfigurationInterface
             ->addDefaultsIfNotSet()
             ->fixXmlConfig('filter_set')
             ->children()
+                ->scalarNode('driver')
+                    ->defaultValue(SyliusResourceBundle::DRIVER_DOCTRINE_ORM)
+                ->end()
                 ->scalarNode('public_processed_path')
                     ->defaultValue('/media/image/processed')
                     ->info(<<<INFO
@@ -50,6 +60,42 @@ INFO)
                 ->end()
         ;
 
+        $this->addResourcesSection($rootNode);
+
         return $treeBuilder;
+    }
+
+    private function addResourcesSection(ArrayNodeDefinition $node): void
+    {
+        /**
+         * @psalm-suppress MixedMethodCall
+         * @psalm-suppress PossiblyUndefinedMethod
+         * @psalm-suppress PossiblyNullReference
+         */
+        $node
+            ->children()
+                ->arrayNode('resources')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->arrayNode('variant_configuration')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->variableNode('options')->end()
+                                ->arrayNode('classes')
+                                    ->addDefaultsIfNotSet()
+                                    ->children()
+                                        ->scalarNode('model')->defaultValue(VariantConfiguration::class)->cannotBeEmpty()->end()
+                                        ->scalarNode('controller')->defaultValue(ResourceController::class)->cannotBeEmpty()->end()
+                                        ->scalarNode('repository')->defaultValue(VariantConfigurationRepository::class)->cannotBeEmpty()->end()
+                                        ->scalarNode('form')->defaultValue(DefaultResourceType::class)->end()
+                                        ->scalarNode('factory')->defaultValue(Factory::class)->end()
+                                    ->end()
+                                ->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
     }
 }

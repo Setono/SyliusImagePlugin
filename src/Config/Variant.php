@@ -64,4 +64,17 @@ final class Variant
 
         return new self($name, $generator, $width, $height, self::FIT_CROP);
     }
+
+    public function equals(self $other): bool
+    {
+        return $this->width === $other->width
+            && $this->height === $other->height
+            && $this->fit === $other->fit
+        ;
+    }
+
+    public function __toString(): string
+    {
+        return $this->name;
+    }
 }

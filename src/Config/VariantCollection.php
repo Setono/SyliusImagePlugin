@@ -20,6 +20,15 @@ final class VariantCollection implements VariantCollectionInterface, \IteratorAg
         $this->variants[$variant->name] = $variant;
     }
 
+    public function get(string $variant): Variant
+    {
+        if (!$this->has($variant)) {
+            throw new \InvalidArgumentException(sprintf('The variant "%s" does not exist', $variant));
+        }
+
+        return $this->variants[$variant];
+    }
+
     /**
      * @psalm-assert-if-true Variant $this->variants[$variant]
      */
@@ -59,8 +68,36 @@ final class VariantCollection implements VariantCollectionInterface, \IteratorAg
         return [] === $this->variants;
     }
 
+    public function equals(VariantCollectionInterface $other): bool
+    {
+        return $this->diff($other)->isEmpty();
+    }
+
+    public function diff(VariantCollectionInterface $other): VariantCollectionInterface
+    {
+        $diff = new self();
+
+        /** @var Variant $variant */
+        foreach ($other as $variant) {
+            if ($this->has($variant)) {
+                if (!$this->get((string) $variant)->equals($variant)) {
+                    $diff->add($variant);
+                }
+            } else {
+                $diff->add($variant);
+            }
+        }
+
+        return $diff;
+    }
+
     public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->variants);
+    }
+
+    public function toArray(): array
+    {
+        return $this->variants;
     }
 }

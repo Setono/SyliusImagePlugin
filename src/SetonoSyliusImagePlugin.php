@@ -6,12 +6,20 @@ namespace Setono\SyliusImagePlugin;
 
 use Setono\SyliusImagePlugin\DependencyInjection\Compiler\RegisterVariantGeneratorsPass;
 use Sylius\Bundle\CoreBundle\Application\SyliusPluginTrait;
+use Sylius\Bundle\ResourceBundle\AbstractResourceBundle;
+use Sylius\Bundle\ResourceBundle\SyliusResourceBundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-final class SetonoSyliusImagePlugin extends Bundle
+final class SetonoSyliusImagePlugin extends AbstractResourceBundle
 {
     use SyliusPluginTrait;
+
+    public function getSupportedDrivers(): array
+    {
+        return [
+            SyliusResourceBundle::DRIVER_DOCTRINE_ORM,
+        ];
+    }
 
     public function build(ContainerBuilder $container): void
     {

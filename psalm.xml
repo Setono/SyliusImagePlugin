@@ -35,5 +35,6 @@
             </errorLevel>
         </PropertyNotSetInConstructor>
         <UnnecessaryVarAnnotation errorLevel="suppress"/>
+        <PluginIssue name="QueryBuilderSetParameter" errorLevel="suppress"/>
     </issueHandlers>
 </psalm>

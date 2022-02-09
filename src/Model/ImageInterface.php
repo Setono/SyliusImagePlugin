@@ -8,10 +8,29 @@ use Sylius\Component\Core\Model\ImageInterface as BaseImageInterface;
 
 interface ImageInterface extends BaseImageInterface
 {
-    /**
-     * Returns true if all variants for this image are processed
-     */
-    public function isProcessed(): bool;
+    public function getVariantConfiguration(): ?VariantConfigurationInterface;
 
-    public function setProcessed(bool $processed = true): void;
+    public function setVariantConfiguration(VariantConfigurationInterface $variantConfiguration): void;
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getMetadata(): array;
+
+    /**
+     * @param array<string, mixed> $metadata
+     */
+    public function setMetadata(array $metadata): void;
+
+    /**
+     * @param mixed $value
+     */
+    public function setMetadataEntry(string $key, $value): void;
+
+    /**
+     * Returns null if the key doesn't exist
+     *
+     * @return mixed|null
+     */
+    public function getMetadataEntry(string $key);
 }

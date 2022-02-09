@@ -8,11 +8,12 @@ use Doctrine\Persistence\ManagerRegistry;
 use Gaufrette\FilesystemInterface;
 use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
 use Setono\SyliusImagePlugin\Config\Variant;
-use Setono\SyliusImagePlugin\Config\VariantCollectionInterface;
 use Setono\SyliusImagePlugin\Message\Command\ProcessImage;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
+use Setono\SyliusImagePlugin\Repository\VariantConfigurationRepositoryInterface;
 use Setono\SyliusImagePlugin\VariantGenerator\VariantGeneratorInterface;
 use Setono\SyliusImagePlugin\VariantGenerator\VariantGeneratorRegistryInterface;
+use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Webmozart\Assert\Assert;
 
@@ -22,7 +23,7 @@ final class ProcessImageHandler implements MessageHandlerInterface
 
     private VariantGeneratorRegistryInterface $variantGeneratorRegistry;
 
-    private VariantCollectionInterface $variantCollection;
+    private VariantConfigurationRepositoryInterface $variantConfigurationRepository;
 
     private FilesystemInterface $uploadedImagesFilesystem;
 
@@ -31,13 +32,13 @@ final class ProcessImageHandler implements MessageHandlerInterface
     public function __construct(
         ManagerRegistry $managerRegistry,
         VariantGeneratorRegistryInterface $variantGeneratorRegistry,
-        VariantCollectionInterface $variantCollection,
+        VariantConfigurationRepositoryInterface $variantConfigurationRepository,
         FilesystemInterface $uploadedImagesFilesystem,
         FilesystemInterface $processedImagesFilesystem
     ) {
         $this->managerRegistry = $managerRegistry;
         $this->variantGeneratorRegistry = $variantGeneratorRegistry;
-        $this->variantCollection = $variantCollection;
+        $this->variantConfigurationRepository = $variantConfigurationRepository;
         $this->uploadedImagesFilesystem = $uploadedImagesFilesystem;
         $this->processedImagesFilesystem = $processedImagesFilesystem;
     }
@@ -53,12 +54,20 @@ final class ProcessImageHandler implements MessageHandlerInterface
         }
         Assert::isInstanceOf($image, ImageInterface::class);
 
+        $variantConfiguration = $this->variantConfigurationRepository->findNewest();
+        if (null === $variantConfiguration) {
+            throw new UnrecoverableMessageHandlingException('No variant configuration saved in the database');
+        }
+
+        $variantCollection = $variantConfiguration->getVariantCollection();
+        Assert::notNull($variantCollection);
+
         /**
          * todo This is just a check - I am not sure this check should be here
          *
          * @var Variant $variant
          */
-        foreach ($this->variantCollection as $variant) {
+        foreach ($variantCollection as $variant) {
             if (!$this->variantGeneratorRegistry->has($variant->generator)) {
                 throw new \RuntimeException(sprintf(
                     'The variant "%s" has defined its generator to be "%s", but no such generator has been registered.',
@@ -72,18 +81,20 @@ final class ProcessImageHandler implements MessageHandlerInterface
 
         /** @var VariantGeneratorInterface $variantGenerator */
         foreach ($this->variantGeneratorRegistry as $variantGenerator) {
-            $variants = $this->variantCollection->getByGenerator($variantGenerator);
+            $variants = $variantCollection->getByGenerator($variantGenerator);
 
-            foreach ($variantGenerator->generate($imageFile, $variants) as $file) {
+            foreach ($variantGenerator->generate($image, $imageFile, $variants) as $file) {
                 $this->processedImagesFilesystem->write(sprintf(
                     '%s/%s',
                     $file->getVariant(),
-                    self::replaceExtension((string) $image->getPath(), $file->getFormat())
+                    self::replaceExtension((string) $image->getPath(), $file->getFileType())
                 ), file_get_contents($file->getPathname()), true);
 
                 @unlink($file->getPathname());
             }
         }
+
+        $image->setVariantConfiguration($variantConfiguration);
 
         $manager->flush();
     }

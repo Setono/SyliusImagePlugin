@@ -7,6 +7,7 @@ namespace Setono\SyliusImagePlugin\VariantGenerator;
 use Gaufrette\File;
 use Setono\SyliusImagePlugin\Config\Variant;
 use Setono\SyliusImagePlugin\File\ImageVariantFile;
+use Setono\SyliusImagePlugin\Model\ImageInterface;
 
 interface VariantGeneratorInterface
 {
@@ -14,9 +15,8 @@ interface VariantGeneratorInterface
 
     /**
      * @param array<array-key, Variant> $variants
-     * @param array<array-key, string> $formats
      *
      * @return iterable<ImageVariantFile>
      */
-    public function generate(File $file, array $variants, array $formats = ['jpg', 'webp', 'avif']): iterable;
+    public function generate(ImageInterface $image, File $file, array $variants): iterable;
 }
