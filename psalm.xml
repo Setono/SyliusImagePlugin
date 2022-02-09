@@ -36,5 +36,10 @@
         </PropertyNotSetInConstructor>
         <UnnecessaryVarAnnotation errorLevel="suppress"/>
         <PluginIssue name="QueryBuilderSetParameter" errorLevel="suppress"/>
+        <TooManyArguments>
+            <errorLevel type="suppress">
+                <referencedFunction name="Doctrine\ORM\Query\Expr::orX"/>
+            </errorLevel>
+        </TooManyArguments>
     </issueHandlers>
 </psalm>

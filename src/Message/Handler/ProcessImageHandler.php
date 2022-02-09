@@ -13,8 +13,10 @@ use Setono\SyliusImagePlugin\Model\ImageInterface;
 use Setono\SyliusImagePlugin\Repository\VariantConfigurationRepositoryInterface;
 use Setono\SyliusImagePlugin\VariantGenerator\VariantGeneratorInterface;
 use Setono\SyliusImagePlugin\VariantGenerator\VariantGeneratorRegistryInterface;
+use Setono\SyliusImagePlugin\Workflow\ProcessWorkflow;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Component\Workflow\Registry;
 use Webmozart\Assert\Assert;
 
 final class ProcessImageHandler implements MessageHandlerInterface
@@ -25,6 +27,8 @@ final class ProcessImageHandler implements MessageHandlerInterface
 
     private VariantConfigurationRepositoryInterface $variantConfigurationRepository;
 
+    private Registry $workflowRegistry;
+
     private FilesystemInterface $uploadedImagesFilesystem;
 
     private FilesystemInterface $processedImagesFilesystem;
@@ -33,12 +37,14 @@ final class ProcessImageHandler implements MessageHandlerInterface
         ManagerRegistry $managerRegistry,
         VariantGeneratorRegistryInterface $variantGeneratorRegistry,
         VariantConfigurationRepositoryInterface $variantConfigurationRepository,
+        Registry $workflowRegistry,
         FilesystemInterface $uploadedImagesFilesystem,
         FilesystemInterface $processedImagesFilesystem
     ) {
         $this->managerRegistry = $managerRegistry;
         $this->variantGeneratorRegistry = $variantGeneratorRegistry;
         $this->variantConfigurationRepository = $variantConfigurationRepository;
+        $this->workflowRegistry = $workflowRegistry;
         $this->uploadedImagesFilesystem = $uploadedImagesFilesystem;
         $this->processedImagesFilesystem = $processedImagesFilesystem;
     }
@@ -77,6 +83,14 @@ final class ProcessImageHandler implements MessageHandlerInterface
             }
         }
 
+        $workflow = $this->workflowRegistry->get($image, ProcessWorkflow::NAME);
+        if (!$workflow->can($image, ProcessWorkflow::TRANSITION_START)) {
+            return;
+        }
+
+        $workflow->apply($image, ProcessWorkflow::TRANSITION_START);
+        $manager->flush();
+
         $imageFile = $this->uploadedImagesFilesystem->get((string) $image->getPath());
 
         /** @var VariantGeneratorInterface $variantGenerator */
@@ -95,6 +109,8 @@ final class ProcessImageHandler implements MessageHandlerInterface
         }
 
         $image->setVariantConfiguration($variantConfiguration);
+
+        $workflow->apply($image, ProcessWorkflow::TRANSITION_FINISH);
 
         $manager->flush();
     }

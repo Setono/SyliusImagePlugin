@@ -8,6 +8,16 @@ use Sylius\Component\Core\Model\ImageInterface as BaseImageInterface;
 
 interface ImageInterface extends BaseImageInterface
 {
+    public const PROCESSING_STATE_PENDING = 'pending';
+
+    public const PROCESSING_STATE_PROCESSING = 'processing';
+
+    public const PROCESSING_STATE_PROCESSED = 'processed';
+
+    public function getProcessingState(): string;
+
+    public function setProcessingState(string $processingState): void;
+
     public function getVariantConfiguration(): ?VariantConfigurationInterface;
 
     public function setVariantConfiguration(VariantConfigurationInterface $variantConfiguration): void;

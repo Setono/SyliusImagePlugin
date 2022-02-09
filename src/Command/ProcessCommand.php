@@ -183,11 +183,17 @@ EOF
         $firstResult = 0;
         $maxResults = 100;
 
-        $qb = $repository->createQueryBuilder('o')
-            ->orWhere('o.variantConfiguration is null')
-            ->orWhere('o.variantConfiguration != :variantConfiguration')
-            ->setParameter('variantConfiguration', $variantConfiguration);
-        $qb->setMaxResults($maxResults);
+        $qb = $repository->createQueryBuilder('o');
+        $qb
+            ->andWhere($qb->expr()->orX(
+                'o.variantConfiguration is null',
+                'o.variantConfiguration != :variantConfiguration',
+            ))
+            ->andWhere('o.processingState = :processingState')
+            ->setParameter('variantConfiguration', $variantConfiguration)
+            ->setParameter('processingState', ImageInterface::PROCESSING_STATE_PENDING)
+            ->setMaxResults($maxResults)
+        ;
 
         do {
             $qb->setFirstResult($firstResult);

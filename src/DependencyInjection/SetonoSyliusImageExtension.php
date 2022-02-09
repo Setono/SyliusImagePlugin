@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Setono\SyliusImagePlugin\DependencyInjection;
 
+use Setono\SyliusImagePlugin\Workflow\ProcessWorkflow;
 use Sylius\Bundle\ResourceBundle\DependencyInjection\Extension\AbstractResourceExtension;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 
-final class SetonoSyliusImageExtension extends AbstractResourceExtension
+final class SetonoSyliusImageExtension extends AbstractResourceExtension implements PrependExtensionInterface
 {
     public function load(array $configs, ContainerBuilder $container): void
     {
@@ -27,5 +29,12 @@ final class SetonoSyliusImageExtension extends AbstractResourceExtension
         $this->registerResources('setono_sylius_image', $config['driver'], $config['resources'], $container);
 
         $loader->load('services.xml');
+    }
+
+    public function prepend(ContainerBuilder $container): void
+    {
+        $container->prependExtensionConfig('framework', [
+            'workflows' => ProcessWorkflow::getConfig(),
+        ]);
     }
 }
