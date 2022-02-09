@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusImagePlugin\Model;
 
+use DateTimeInterface;
 use Sylius\Component\Core\Model\ImageInterface as BaseImageInterface;
 
 interface ImageInterface extends BaseImageInterface
@@ -14,9 +15,17 @@ interface ImageInterface extends BaseImageInterface
 
     public const PROCESSING_STATE_PROCESSED = 'processed';
 
+    public const PROCESSING_STATE_FAILED = 'failed';
+
     public function getProcessingState(): string;
 
     public function setProcessingState(string $processingState): void;
+
+    public function getProcessingStateUpdatedAt(): ?DateTimeInterface;
+
+    public function getProcessingTries(): int;
+
+    public function incrementProcessingTries(int $increment = 1): void;
 
     public function getVariantConfiguration(): ?VariantConfigurationInterface;
 

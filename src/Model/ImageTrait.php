@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusImagePlugin\Model;
 
+use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 
 trait ImageTrait
@@ -16,6 +17,12 @@ trait ImageTrait
 
     /** @ORM\Column(type="string", options={"default": ImageInterface::PROCESSING_STATE_PENDING}) */
     protected string $processingState = ImageInterface::PROCESSING_STATE_PENDING;
+
+    /** @ORM\Column(type="datetime", nullable=true) */
+    protected ?DateTimeInterface $processingStateUpdatedAt = null;
+
+    /** @ORM\Column(type="integer", options={"default": 0}) */
+    protected int $processingTries = 0;
 
     /**
      * @ORM\ManyToOne(targetEntity="Setono\SyliusImagePlugin\Model\VariantConfigurationInterface")
@@ -38,6 +45,22 @@ trait ImageTrait
     public function setProcessingState(string $processingState): void
     {
         $this->processingState = $processingState;
+        $this->processingStateUpdatedAt = new \DateTimeImmutable();
+    }
+
+    public function getProcessingStateUpdatedAt(): ?DateTimeInterface
+    {
+        return $this->processingStateUpdatedAt;
+    }
+
+    public function getProcessingTries(): int
+    {
+        return $this->processingTries;
+    }
+
+    public function incrementProcessingTries(int $increment = 1): void
+    {
+        $this->processingTries += $increment;
     }
 
     public function getVariantConfiguration(): ?VariantConfigurationInterface

@@ -32,5 +32,6 @@ final class CheckVariantsAreCreatedSubscriber implements EventSubscriberInterfac
         }
 
         // todo check that all variants are created on Cloudflare
+        echo sprintf('Implement %s', __METHOD__);
     }
 }

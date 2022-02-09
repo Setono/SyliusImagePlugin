@@ -8,6 +8,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Gaufrette\FilesystemInterface;
 use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
 use Setono\SyliusImagePlugin\Config\Variant;
+use Setono\SyliusImagePlugin\Exception\ImageProcessingFailedException;
 use Setono\SyliusImagePlugin\Message\Command\ProcessImage;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
 use Setono\SyliusImagePlugin\Repository\VariantConfigurationRepositoryInterface;
@@ -91,28 +92,34 @@ final class ProcessImageHandler implements MessageHandlerInterface
         $workflow->apply($image, ProcessWorkflow::TRANSITION_START);
         $manager->flush();
 
-        $imageFile = $this->uploadedImagesFilesystem->get((string) $image->getPath());
+        try {
+            $imageFile = $this->uploadedImagesFilesystem->get((string) $image->getPath());
 
-        /** @var VariantGeneratorInterface $variantGenerator */
-        foreach ($this->variantGeneratorRegistry as $variantGenerator) {
-            $variants = $variantCollection->getByGenerator($variantGenerator);
+            /** @var VariantGeneratorInterface $variantGenerator */
+            foreach ($this->variantGeneratorRegistry as $variantGenerator) {
+                $variants = $variantCollection->getByGenerator($variantGenerator);
 
-            foreach ($variantGenerator->generate($image, $imageFile, $variants) as $file) {
-                $this->processedImagesFilesystem->write(sprintf(
-                    '%s/%s',
-                    $file->getVariant(),
-                    self::replaceExtension((string) $image->getPath(), $file->getFileType())
-                ), file_get_contents($file->getPathname()), true);
+                foreach ($variantGenerator->generate($image, $imageFile, $variants) as $file) {
+                    $this->processedImagesFilesystem->write(sprintf(
+                        '%s/%s',
+                        $file->getVariant(),
+                        self::replaceExtension((string) $image->getPath(), $file->getFileType())
+                    ), file_get_contents($file->getPathname()), true);
 
-                @unlink($file->getPathname());
+                    @unlink($file->getPathname());
+                }
             }
+
+            $image->setVariantConfiguration($variantConfiguration);
+
+            $workflow->apply($image, ProcessWorkflow::TRANSITION_FINISH);
+            $manager->flush();
+        } catch (\Throwable $e) {
+            $workflow->apply($image, ProcessWorkflow::TRANSITION_FAIL);
+            $manager->flush();
+
+            throw ImageProcessingFailedException::fromCommand($message, $e);
         }
-
-        $image->setVariantConfiguration($variantConfiguration);
-
-        $workflow->apply($image, ProcessWorkflow::TRANSITION_FINISH);
-
-        $manager->flush();
     }
 
     private static function replaceExtension(string $path, string $newExtension): string
