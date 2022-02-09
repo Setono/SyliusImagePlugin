@@ -144,7 +144,7 @@ EOF
 
         $variantConfiguration = $this->variantConfigurationRepository->findNewest();
         if (null === $variantConfiguration) {
-            $output->writeln('No variant configuration saved in the database. Run comment with --sync-configuration instead.');
+            $output->writeln('No variant configuration saved in the database. Run with --sync-configuration instead.');
 
             return 0;
         }
