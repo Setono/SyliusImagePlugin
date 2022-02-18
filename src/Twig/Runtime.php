@@ -39,12 +39,12 @@ final class Runtime implements RuntimeExtensionInterface
         if (null !== $request) {
             $acceptHeaders = $request->headers->get('Accept');
             if (null !== $acceptHeaders) {
-                if (strpos($acceptHeaders, 'image/webp') !== false) {
-                    array_unshift($candidates, 'webp');
+                if (strpos($acceptHeaders, 'image/avif') !== false) {
+                    $candidates[] = 'avif';
                 }
 
-                if (strpos($acceptHeaders, 'image/avif') !== false) {
-                    array_unshift($candidates, 'avif');
+                if (strpos($acceptHeaders, 'image/webp') !== false) {
+                    $candidates[] = 'webp';
                 }
             }
         }
