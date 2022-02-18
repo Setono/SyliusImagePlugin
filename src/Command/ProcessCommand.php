@@ -46,6 +46,8 @@ final class ProcessCommand extends Command
     /** @var array<string, array{classes: array{model: string}}> */
     private array $resources;
 
+    private int $maximumNumberOfTries;
+
     /**
      * @param array<string, array{classes: array{model: string}}> $resources
      */
@@ -56,7 +58,8 @@ final class ProcessCommand extends Command
         EventDispatcherInterface $eventDispatcher,
         VariantConfigurationRepositoryInterface $variantConfigurationRepository,
         FactoryInterface $variantConfigurationFactory,
-        array $resources
+        array $resources,
+        int $maximumNumberOfTries = 10
     ) {
         parent::__construct();
 
@@ -67,6 +70,7 @@ final class ProcessCommand extends Command
         $this->variantConfigurationRepository = $variantConfigurationRepository;
         $this->variantConfigurationFactory = $variantConfigurationFactory;
         $this->resources = $resources;
+        $this->maximumNumberOfTries = $maximumNumberOfTries;
     }
 
     protected function configure(): void
@@ -184,15 +188,24 @@ EOF
         $firstResult = 0;
         $maxResults = 100;
 
+        $now = new \DateTimeImmutable();
+
         $qb = $repository->createQueryBuilder('o');
         $qb
             ->andWhere($qb->expr()->orX(
                 'o.variantConfiguration is null',
                 'o.variantConfiguration != :variantConfiguration',
             ))
-            ->andWhere('o.processingState = :processingState')
+            ->andWhere($qb->expr()->orX(
+                'o.processingRetryAt is null',
+                'o.processingRetryAt <= :now',
+            ))
+            ->andWhere('o.processingTries <= :maximumNumberOfTries')
+            ->andWhere('o.processingState IN (:processingStates)')
             ->setParameter('variantConfiguration', $variantConfiguration)
-            ->setParameter('processingState', ImageInterface::PROCESSING_STATE_PENDING)
+            ->setParameter('now', $now)
+            ->setParameter('maximumNumberOfTries', $this->maximumNumberOfTries)
+            ->setParameter('processingStates', [ImageInterface::PROCESSING_STATE_PENDING, ImageInterface::PROCESSING_STATE_FAILED])
             ->setMaxResults($maxResults)
         ;
 

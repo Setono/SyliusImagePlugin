@@ -81,7 +81,7 @@ final class ProcessWorkflow
     public static function getTransitions(): array
     {
         return [
-            new Transition(self::TRANSITION_START, ImageInterface::PROCESSING_STATE_PENDING, ImageInterface::PROCESSING_STATE_PROCESSING),
+            new Transition(self::TRANSITION_START, [ImageInterface::PROCESSING_STATE_PENDING, ImageInterface::PROCESSING_STATE_FAILED], ImageInterface::PROCESSING_STATE_PROCESSING),
             new Transition(self::TRANSITION_FINISH, ImageInterface::PROCESSING_STATE_PROCESSING, ImageInterface::PROCESSING_STATE_PROCESSED),
             new Transition(self::TRANSITION_FAIL, ImageInterface::PROCESSING_STATE_PROCESSING, ImageInterface::PROCESSING_STATE_FAILED),
         ];
