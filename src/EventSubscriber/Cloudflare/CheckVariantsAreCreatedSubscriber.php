@@ -35,7 +35,7 @@ final class CheckVariantsAreCreatedSubscriber implements EventSubscriberInterfac
         }
 
         $existingVariants = array_map(static function (VariantResult $variantResult) {
-            return Container::underscore($variantResult->id);
+            return Container::underscore($variantResult->id); // variants in Cloudflare are saved as camel case
         }, $this->client->getVariants()->result->variants);
 
         /** @var array<array-key, Variant> $variantsToCreate */
