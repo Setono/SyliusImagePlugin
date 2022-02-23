@@ -102,6 +102,8 @@ RESPONSE
                 'width' => 100,
                 'height' => 100,
             ], $createdVariant->options->toArray());
+
+            // todo remove variant again
         }
     }
 
