@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusImagePlugin\Message\Handler;
 
+use Doctrine\ORM\OptimisticLockException;
 use Doctrine\Persistence\ManagerRegistry;
 use Gaufrette\FilesystemInterface;
 use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
@@ -84,13 +85,22 @@ final class ProcessImageHandler implements MessageHandlerInterface
             }
         }
 
+        /**
+         * Here we check that we can actually start processing the image and by flushing we also utilize Doctrines
+         * optimistic locking feature. See: https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/transactions-and-concurrency.html#optimistic-locking
+         */
         $workflow = $this->workflowRegistry->get($image, ProcessWorkflow::NAME);
         if (!$workflow->can($image, ProcessWorkflow::TRANSITION_START)) {
             return;
         }
 
         $workflow->apply($image, ProcessWorkflow::TRANSITION_START);
-        $manager->flush();
+
+        try {
+            $manager->flush();
+        } catch (OptimisticLockException $e) {
+            throw ImageProcessingFailedException::fromCommand($message, $e);
+        }
 
         try {
             $imageFile = $this->uploadedImagesFilesystem->get((string) $image->getPath());
