@@ -21,6 +21,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Webmozart\Assert\Assert;
 
@@ -32,6 +33,13 @@ final class ProcessCommand extends Command
 
     /** @var string|null */
     protected static $defaultDescription = 'Processes all image variants';
+
+    /**
+     * It is set in the initialize method which is called before the execute method
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    private SymfonyStyle $io;
 
     private MessageBusInterface $commandBus;
 
@@ -116,10 +124,15 @@ EOF
         );
     }
 
+    protected function initialize(InputInterface $input, OutputInterface $output): void
+    {
+        $this->io = new SymfonyStyle($input, $output);
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if ($this->variantCollection->isEmpty()) {
-            $output->writeln('No variants configured');
+            $this->io->writeln('No variants configured');
 
             return 0;
         }
@@ -138,7 +151,7 @@ EOF
         }
 
         if ([] === $resourcesToProcess) {
-            $output->writeln(sprintf('No resources implements the interface %s', ImageInterface::class));
+            $this->io->writeln(sprintf('No resources implements the interface %s', ImageInterface::class));
 
             return 0;
         }
@@ -147,7 +160,7 @@ EOF
 
         $variantConfiguration = $this->variantConfigurationRepository->findNewest();
         if (null === $variantConfiguration) {
-            $output->writeln('No variant configuration saved in the database. Run with --sync-configuration instead.');
+            $this->io->writeln('No variant configuration saved in the database. Run with --sync-configuration instead.');
 
             return 0;
         }
@@ -169,15 +182,21 @@ EOF
      */
     private function processResource(string $class, VariantConfigurationInterface $variantConfiguration): void
     {
+        $this->io->section(sprintf('Processing resource: %s', $class));
+
         $manager = $this->getManager($class);
 
         /** @var ObjectRepository|EntityRepository $repository */
         $repository = $manager->getRepository($class);
         Assert::isInstanceOf($repository, EntityRepository::class);
 
+        $i = 0;
         foreach ($this->getImages($repository, $manager, $variantConfiguration) as $image) {
             $this->commandBus->dispatch(ProcessImage::fromImage($image));
+            ++$i;
         }
+
+        $this->io->success(sprintf('%d images sent to processing...', $i));
     }
 
     /**
