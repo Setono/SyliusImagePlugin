@@ -6,3 +6,4 @@
 /tests/Application/yarn.lock
 
 /.phpunit.result.cache
+/phpunit.xml

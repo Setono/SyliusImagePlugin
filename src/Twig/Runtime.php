@@ -64,6 +64,14 @@ final class Runtime implements RuntimeExtensionInterface
         return $this->filterExtension->filter($relativePath, $variant); // todo add other arguments
     }
 
+    /**
+     * Replaces the original extension with the value of $newExtension
+     *
+     * @param string $path i.e. ad/ef/sadfsadf.jpg
+     * @param string $newExtension i.e. webp
+     *
+     * @return string i.e. ad/ef/sadfsadf.webp
+     */
     private static function replaceExtension(string $path, string $newExtension): string
     {
         $pathInfo = pathinfo($path);

@@ -7,6 +7,9 @@
             <directory suffix=".php">src/</directory>
         </include>
     </coverage>
+    <extensions>
+        <extension class="Tests\Setono\SyliusImagePlugin\PHPUnit\Extension\LiveNoticeExtension"/>
+    </extensions>
     <testsuites>
         <testsuite name="SetonoSyliusImagePlugin Test Suite">
             <directory>tests</directory>
@@ -15,5 +18,8 @@
     <php>
         <env name="APP_ENV" value="test"/>
         <env name="SHELL_VERBOSITY" value="-1"/>
+        <env name="CLOUDFLARE_LIVE" value="0"/> <!-- Set to true and insert a token below to test live requests to the Cloudflare API -->
+        <env name="CLOUDFLARE_ACCOUNT_IDENTIFIER" value=""/> <!-- Insert your Cloudflare account identifier -->
+        <env name="CLOUDFLARE_API_TOKEN" value=""/> <!-- Insert your Cloudflare API token -->
     </php>
 </phpunit>

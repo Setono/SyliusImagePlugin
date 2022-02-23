@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace Setono\SyliusImagePlugin\EventSubscriber\Cloudflare;
 
-use Setono\SyliusImagePlugin\Config\VariantCollectionInterface;
+use Setono\SyliusImagePlugin\Client\Cloudflare\ClientInterface;
+use Setono\SyliusImagePlugin\Client\Cloudflare\Response\VariantResult;
+use Setono\SyliusImagePlugin\Config\Variant;
 use Setono\SyliusImagePlugin\Event\ProcessingStartedEvent;
 use Setono\SyliusImagePlugin\VariantGenerator\CloudflareVariantGenerator;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 final class CheckVariantsAreCreatedSubscriber implements EventSubscriberInterface
 {
-    private VariantCollectionInterface $variantCollection;
+    private ClientInterface $client;
 
-    public function __construct(VariantCollectionInterface $variantCollection)
+    public function __construct(ClientInterface $client)
     {
-        $this->variantCollection = $variantCollection;
+        $this->client = $client;
     }
 
     public static function getSubscribedEvents(): array
@@ -27,11 +30,31 @@ final class CheckVariantsAreCreatedSubscriber implements EventSubscriberInterfac
 
     public function check(ProcessingStartedEvent $event): void
     {
-        if (!$this->variantCollection->hasOneWithGenerator(CloudflareVariantGenerator::NAME)) {
+        if (!$event->variantCollection->hasOneWithGenerator(CloudflareVariantGenerator::NAME)) {
             return;
         }
 
-        // todo check that all variants are created on Cloudflare
-        echo sprintf('Implement %s', __METHOD__);
+        $existingVariants = array_map(static function (VariantResult $variantResult) {
+            return Container::underscore($variantResult->id);
+        }, $this->client->getVariants()->result->variants);
+
+        /** @var array<array-key, Variant> $variantsToCreate */
+        $variantsToCreate = [];
+
+        foreach ($event->variantCollection->getByGenerator(CloudflareVariantGenerator::NAME) as $variant) {
+            if (in_array($variant->name, $existingVariants, true)) {
+                continue;
+            }
+
+            $variantsToCreate[] = $variant;
+        }
+
+        foreach ($variantsToCreate as $item) {
+            $this->client->createVariant($item->name, [
+                'fit' => $item->fit,
+                'width' => $item->width,
+                'height' => $item->height,
+            ]);
+        }
     }
 }

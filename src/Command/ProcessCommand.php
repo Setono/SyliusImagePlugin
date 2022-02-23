@@ -143,8 +143,6 @@ EOF
             return 0;
         }
 
-        $this->eventDispatcher->dispatch(new ProcessingStartedEvent());
-
         $this->syncConfiguration($syncConfiguration);
 
         $variantConfiguration = $this->variantConfigurationRepository->findNewest();
@@ -153,6 +151,11 @@ EOF
 
             return 0;
         }
+
+        $variantCollection = $variantConfiguration->getVariantCollection();
+        Assert::notNull($variantCollection);
+
+        $this->eventDispatcher->dispatch(new ProcessingStartedEvent($variantCollection));
 
         foreach ($resourcesToProcess as $resourceToProcess) {
             $this->processResource($resourceToProcess, $variantConfiguration);
