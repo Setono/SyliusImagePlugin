@@ -11,18 +11,45 @@ final class Variant
     /**
      * See descriptions of different fits here: https://developers.cloudflare.com/images/cloudflare-images/resize-images
      */
+
+    /**
+     * Image will be shrunk and cropped to fit within the area specified by width and height.
+     * The image will not be enlarged. For images smaller than the given dimensions it is the same as scale-down.
+     * For images larger than the given dimensions, it is the same as cover.
+     */
     public const FIT_CROP = 'crop';
 
-    public const FIT_SCALE_DOWN = 'scale_down';
+    /**
+     * Image will be shrunk in size to fully fit within the given width or height, but will not be enlarged
+     */
+    public const FIT_SCALE_DOWN = 'scale-down';
+
+    /**
+     * Image will be resized (shrunk or enlarged) to be as large as possible within the given width or height
+     * while preserving the aspect ratio, and the extra area will be filled with a background color (white by default).
+     */
+    public const FIT_PAD = 'pad';
+
+    /**
+     * Image will be resized (shrunk or enlarged) to be as large as possible
+     * within the given width or height while preserving the aspect ratio.
+     */
+    public const FIT_CONTAIN = 'contain';
+
+    /**
+     * Image will be resized to exactly fill the entire area specified
+     * by width and height, and will be cropped if necessary.
+     */
+    public const FIT_COVER = 'cover';
 
     /**
      * The name of the variant. Right now it will be the name of the filter set
      */
     public string $name;
 
-    public ?int $width;
+    public int $width;
 
-    public ?int $height;
+    public int $height;
 
     public string $fit;
 
@@ -31,13 +58,10 @@ final class Variant
      */
     public string $generator;
 
-    public function __construct(string $name, string $generator, ?int $width, ?int $height, string $fit = self::FIT_CROP)
+    public function __construct(string $name, string $generator, int $width, int $height, string $fit)
     {
-        Assert::nullOrGreaterThan($width, 0);
-        Assert::nullOrGreaterThan($height, 0);
-        if (null === $width && null === $height) {
-            throw new \InvalidArgumentException('Both the width and height cannot be null');
-        }
+        Assert::greaterThan($width, 0);
+        Assert::greaterThan($height, 0);
 
         $this->name = $name;
         $this->generator = $generator;
@@ -48,21 +72,11 @@ final class Variant
 
     public static function fromFilterSet(string $name, string $generator, array $filterSet): self
     {
-        if (!isset($filterSet['filters']['thumbnail']['size'])) {
-            throw new \InvalidArgumentException(sprintf('Right now this plugin only supports the thumbnail filter for LiipImagineBundle filters. The filter set "%s" does not have this filter', $name));
-        }
+        self::validateFilterSet($name, $filterSet);
 
-        /** @psalm-suppress MixedArrayAccess */
-        $size = $filterSet['filters']['thumbnail']['size'];
-        Assert::isArray($size);
+        $filters = $filterSet['filters'];
 
-        $width = $size[0] ?? null;
-        $height = $size[1] ?? null;
-
-        Assert::nullOrInteger($width);
-        Assert::nullOrInteger($height);
-
-        return new self($name, $generator, $width, $height, self::FIT_CROP);
+        return new self($name, $generator, $filters['thumbnail']['size'][0], $filters['thumbnail']['size'][1], self::FIT_SCALE_DOWN);
     }
 
     public function equals(self $other): bool
@@ -76,5 +90,36 @@ final class Variant
     public function __toString(): string
     {
         return $this->name;
+    }
+
+    /**
+     * @psalm-assert array{filters: array{thumbnail: array{size: list<int>}}} $filterSet
+     */
+    private static function validateFilterSet(string $name, array $filterSet): void
+    {
+        Assert::keyExists($filterSet, 'filters');
+
+        $filters = $filterSet['filters'];
+        Assert::isArray($filters);
+
+        Assert::keyExists($filters, 'thumbnail', sprintf('A thumbnail filter must be configured for the filter set "%s"', $name));
+
+        $filterValidators = [
+            'thumbnail' => static function (array $options): void {
+                Assert::keyExists($options, 'size', 'The thumbnail filter must have a size option');
+                $size = $options['size'];
+                Assert::isList($size);
+                Assert::count($size, 2);
+                Assert::allInteger($size);
+            },
+        ];
+
+        foreach ($filters as $filter => $options) {
+            Assert::oneOf($filter, ['thumbnail', 'background'], sprintf('The filter "%s" on the "%s" filter set is not supported', $name, $filter));
+
+            if (isset($filterValidators[$filter])) {
+                $filterValidators[$filter]($options);
+            }
+        }
     }
 }

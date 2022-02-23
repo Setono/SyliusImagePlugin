@@ -52,28 +52,13 @@ final class CloudflareVariantGenerator implements VariantGeneratorInterface
         $tempDir = $this->getTempDir();
 
         try {
-            /**
-             * 1. Check if the file already exists on Cloudflare
-             * 1a. If not, create it
-             *
-             * 2. Create all variants in both avif and webp
-             */
-            $cloudflareId = $image->getMetadataEntry('cloudflareId');
-            Assert::nullOrString($cloudflareId);
+            $filename = sprintf('%s/%s', $tempDir, self::pathToFilename((string) $image->getPath()));
+            $this->filesystem->dumpFile($filename, $file->getContent());
 
-            if (null === $cloudflareId) {
-                $filename = sprintf('%s/%s', $tempDir, self::pathToFilename((string) $image->getPath()));
-                $this->filesystem->dumpFile($filename, $file->getContent());
+            $response = $this->client->uploadImage($filename);
+            $cloudflareId = $response->result->id;
 
-                $response = $this->client->uploadImage($filename);
-                $image->setMetadataEntry('cloudflareId', $response->result->id);
-
-                $cloudflareVariants = $response->result->variants;
-            } else {
-                $cloudflareVariants = $this->client->getImageDetails($cloudflareId)->result->variants;
-            }
-
-            $cloudflareVariants = self::resolveVariants($variants, $cloudflareVariants);
+            $cloudflareVariants = self::resolveVariants($variants, $response->result->variants);
 
             $responses = [];
             foreach ($cloudflareVariants as $variant => $url) {
@@ -134,6 +119,10 @@ final class CloudflareVariantGenerator implements VariantGeneratorInterface
             }
         } finally {
             $this->filesystem->remove($tempDir);
+
+            if (isset($cloudflareId)) {
+                $this->client->deleteImage($cloudflareId);
+            }
         }
     }
 

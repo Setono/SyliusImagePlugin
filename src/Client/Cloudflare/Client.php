@@ -44,6 +44,11 @@ final class Client implements ClientInterface
         );
     }
 
+    public function deleteImage(string $identifier): void
+    {
+        $this->httpClient->request('DELETE', sprintf('/client/v4/accounts/%s/images/v1/%s', $this->accountIdentifier, $identifier));
+    }
+
     public function getImageDetails(string $identifier): ImageResponse
     {
         return new ImageResponse(

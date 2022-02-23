@@ -14,6 +14,8 @@ interface ClientInterface
 {
     public function uploadImage(string $filename, array $metadata = []): ImageResponse;
 
+    public function deleteImage(string $identifier): void;
+
     public function getImageDetails(string $identifier): ImageResponse;
 
     public function getVariant(string $identifier): VariantDetailsResponse;
