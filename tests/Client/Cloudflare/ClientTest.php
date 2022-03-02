@@ -110,7 +110,8 @@ RESPONSE
     private function getClient(MockResponse $response): Client
     {
         if ($this->live) {
-            $httpClient = HttpClient::createForBaseUri('https://api.cloudflare.com', [
+            $httpClient = HttpClient::create([
+                'base_uri' => 'https://api.cloudflare.com',
                 'headers' => [
                     'Authorization' => sprintf('Bearer %s', $this->apiToken),
                 ],
