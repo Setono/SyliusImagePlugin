@@ -5,7 +5,7 @@
         <service id="setono_sylius_image.command.process"
                  class="Setono\SyliusImagePlugin\Command\ProcessCommand">
             <argument type="service" id="doctrine"/>
-            <argument type="service" id="sylius.command_bus"/><!-- todo create our own bus -->
+            <argument type="service" id="setono_sylius_image.command_bus"/>
             <argument type="service" id="setono_sylius_image.config.variant_collection"/>
             <argument type="service" id="event_dispatcher"/>
             <argument type="service" id="setono_sylius_image.repository.variant_configuration"/>
