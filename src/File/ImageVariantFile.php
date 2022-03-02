@@ -27,4 +27,35 @@ final class ImageVariantFile extends \SplFileInfo
     {
         return $this->fileType;
     }
+
+    /**
+     * @return list<string>
+     */
+    public static function getNextGenerationFormatsAsExtensions(): array
+    {
+        return ['webp', 'avif'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function getNextGenerationFormatsAsContentTypes(): array
+    {
+        return ['image/webp', 'image/avif'];
+    }
+
+    /**
+     * Replaces the original extension with the value of $newExtension
+     *
+     * @param string $path i.e. ad/ef/sadfsadf.jpg
+     * @param string $newExtension i.e. webp
+     *
+     * @return string i.e. ad/ef/sadfsadf.webp
+     */
+    public static function replaceExtension(string $path, string $newExtension): string
+    {
+        $pathInfo = pathinfo($path);
+
+        return sprintf('%s/%s.%s', $pathInfo['dirname'], $pathInfo['filename'], $newExtension);
+    }
 }

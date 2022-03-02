@@ -6,6 +6,7 @@ namespace Setono\SyliusImagePlugin\Twig;
 
 use Gaufrette\FilesystemInterface;
 use Liip\ImagineBundle\Templating\FilterExtension;
+use Setono\SyliusImagePlugin\File\ImageVariantFile;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Twig\Extension\RuntimeExtensionInterface;
 
@@ -51,7 +52,7 @@ final class Runtime implements RuntimeExtensionInterface
 
         // first check optimized image candidates
         foreach ($candidates as $candidate) {
-            $tmpRelativePath = self::replaceExtension($relativePath, $candidate);
+            $tmpRelativePath = ImageVariantFile::replaceExtension($relativePath, $candidate);
             if ($this->filesystem->has(sprintf('%s/%s', $variant, $tmpRelativePath))) {
                 return sprintf('%s/%s/%s', $this->publicProcessedPath, $variant, $tmpRelativePath);
             }
@@ -62,20 +63,5 @@ final class Runtime implements RuntimeExtensionInterface
         }
 
         return $this->filterExtension->filter($relativePath, $variant); // todo add other arguments
-    }
-
-    /**
-     * Replaces the original extension with the value of $newExtension
-     *
-     * @param string $path i.e. ad/ef/sadfsadf.jpg
-     * @param string $newExtension i.e. webp
-     *
-     * @return string i.e. ad/ef/sadfsadf.webp
-     */
-    private static function replaceExtension(string $path, string $newExtension): string
-    {
-        $pathInfo = pathinfo($path);
-
-        return sprintf('%s/%s.%s', $pathInfo['dirname'], $pathInfo['filename'], $newExtension);
     }
 }

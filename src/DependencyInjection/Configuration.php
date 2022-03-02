@@ -6,6 +6,7 @@ namespace Setono\SyliusImagePlugin\DependencyInjection;
 
 use Setono\SyliusImagePlugin\Doctrine\ORM\VariantConfigurationRepository;
 use Setono\SyliusImagePlugin\EventListener\Doctrine\ProcessUpdatedImageListener;
+use Setono\SyliusImagePlugin\EventListener\Doctrine\RemoveProcessedImagesListener;
 use Setono\SyliusImagePlugin\Model\VariantConfiguration;
 use Sylius\Bundle\ResourceBundle\Controller\ResourceController;
 use Sylius\Bundle\ResourceBundle\Form\Type\DefaultResourceType;
@@ -32,9 +33,19 @@ final class Configuration implements ConfigurationInterface
                 ->scalarNode('driver')
                     ->defaultValue(SyliusResourceBundle::DRIVER_DOCTRINE_ORM)
                 ->end()
-                ->booleanNode('update_image_listener')
-                    ->info(sprintf('When you persist or update an image, the %s will automatically dispatch a processing message to the message queue for the respective image. If you don\'t want this listener enabled, set this option to false', ProcessUpdatedImageListener::class))
-                    ->defaultTrue()
+                ->arrayNode('listeners')
+                    ->canBeDisabled()
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->booleanNode('update_image')
+                            ->info(sprintf('When you persist or update an image, the %s will automatically dispatch a processing message to the message queue for the respective image. If you don\'t want this listener enabled, set this option to false', ProcessUpdatedImageListener::class))
+                            ->defaultTrue()
+                        ->end()
+                        ->booleanNode('remove_processed_images')
+                            ->info(sprintf('When you delete an image inside Sylius, the listener %s will try to remove the processed image files. If you don\'t want this listener enabled, set this option to false', RemoveProcessedImagesListener::class))
+                            ->defaultTrue()
+                        ->end()
+                    ->end()
                 ->end()
                 ->scalarNode('public_processed_path')
                     ->defaultValue('/media/image/processed')
