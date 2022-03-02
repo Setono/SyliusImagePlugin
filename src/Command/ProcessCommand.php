@@ -15,6 +15,7 @@ use Setono\SyliusImagePlugin\Message\Command\ProcessImage;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
 use Setono\SyliusImagePlugin\Model\VariantConfigurationInterface;
 use Setono\SyliusImagePlugin\Repository\VariantConfigurationRepositoryInterface;
+use Setono\SyliusImagePlugin\Synchronizer\VariantConfigurationSynchronizerInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use Symfony\Component\Console\Command\Command;
@@ -49,7 +50,7 @@ final class ProcessCommand extends Command
 
     private VariantConfigurationRepositoryInterface $variantConfigurationRepository;
 
-    private FactoryInterface $variantConfigurationFactory;
+    private VariantConfigurationSynchronizerInterface $variantConfigurationSynchronizer;
 
     /** @var array<string, array{classes: array{model: string}}> */
     private array $resources;
@@ -65,7 +66,7 @@ final class ProcessCommand extends Command
         VariantCollectionInterface $variantCollection,
         EventDispatcherInterface $eventDispatcher,
         VariantConfigurationRepositoryInterface $variantConfigurationRepository,
-        FactoryInterface $variantConfigurationFactory,
+        VariantConfigurationSynchronizerInterface $variantConfigurationSynchronizer,
         array $resources,
         int $maximumNumberOfTries = 10
     ) {
@@ -76,7 +77,7 @@ final class ProcessCommand extends Command
         $this->variantCollection = $variantCollection;
         $this->eventDispatcher = $eventDispatcher;
         $this->variantConfigurationRepository = $variantConfigurationRepository;
-        $this->variantConfigurationFactory = $variantConfigurationFactory;
+        $this->variantConfigurationSynchronizer = $variantConfigurationSynchronizer;
         $this->resources = $resources;
         $this->maximumNumberOfTries = $maximumNumberOfTries;
     }
@@ -156,7 +157,9 @@ EOF
             return 0;
         }
 
-        $this->syncConfiguration($syncConfiguration);
+        if ($syncConfiguration) {
+            $this->variantConfigurationSynchronizer->synchronize();
+        }
 
         $variantConfiguration = $this->variantConfigurationRepository->findNewest();
         if (null === $variantConfiguration) {
@@ -246,32 +249,5 @@ EOF
 
             $manager->clear();
         } while ([] !== $images);
-    }
-
-    private function syncConfiguration(bool $syncConfiguration): void
-    {
-        if (!$syncConfiguration) {
-            return;
-        }
-
-        $variantConfiguration = $this->variantConfigurationRepository->findNewest();
-        if (null !== $variantConfiguration) {
-            $variantCollection = $variantConfiguration->getVariantCollection();
-            Assert::notNull($variantCollection);
-
-            if ($variantCollection->equals($this->variantCollection)) {
-                return;
-            }
-        }
-
-        /** @var VariantConfigurationInterface|object $variantConfiguration */
-        $variantConfiguration = $this->variantConfigurationFactory->createNew();
-        Assert::isInstanceOf($variantConfiguration, VariantConfigurationInterface::class);
-
-        $variantConfiguration->setVariantCollection($this->variantCollection);
-
-        $manager = $this->getManager($variantConfiguration);
-        $manager->persist($variantConfiguration);
-        $manager->flush();
     }
 }
