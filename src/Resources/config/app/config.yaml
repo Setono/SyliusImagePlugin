@@ -9,6 +9,9 @@ framework:
                 headers:
                     Accept: "application/json"
                     Authorization: 'Bearer %env(CLOUDFLARE_API_TOKEN)%'
+    messenger:
+        buses:
+            setono_sylius_image.command_bus: ~
 
 knp_gaufrette:
     adapters:

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusImagePlugin\DependencyInjection;
 
 use Setono\SyliusImagePlugin\Doctrine\ORM\VariantConfigurationRepository;
+use Setono\SyliusImagePlugin\EventListener\Doctrine\ProcessUpdatedImageListener;
 use Setono\SyliusImagePlugin\Model\VariantConfiguration;
 use Sylius\Bundle\ResourceBundle\Controller\ResourceController;
 use Sylius\Bundle\ResourceBundle\Form\Type\DefaultResourceType;
@@ -30,6 +31,10 @@ final class Configuration implements ConfigurationInterface
             ->children()
                 ->scalarNode('driver')
                     ->defaultValue(SyliusResourceBundle::DRIVER_DOCTRINE_ORM)
+                ->end()
+                ->booleanNode('update_image_listener')
+                    ->info(sprintf('When you persist or update an image, the %s will automatically dispatch a processing message to the message queue for the respective image. If you don\'t want this listener enabled, set this option to false', ProcessUpdatedImageListener::class))
+                    ->defaultTrue()
                 ->end()
                 ->scalarNode('public_processed_path')
                     ->defaultValue('/media/image/processed')
