@@ -119,14 +119,6 @@ final class TimeoutCommand extends Command
             $i = 0;
             foreach ($this->getImages($repository, $manager) as $image) {
                 if ($workflow === null) {
-                    if (!$this->workflowRegistry->has($image, ProcessWorkflow::NAME)) {
-                        throw new \LogicException(sprintf(
-                            'The workflow "%s" is not defined. This should not be possible because the workflow is defined inside %s',
-                            ProcessWorkflow::NAME,
-                            SetonoSyliusImageExtension::class
-                        ));
-                    }
-
                     $workflow = $this->workflowRegistry->get($image, ProcessWorkflow::NAME);
                 }
 
