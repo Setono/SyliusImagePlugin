@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <parameters>
+        <!--
+        This is the timeout threshold in minutes. I.e. if an image
+        has been in the processing state longer than this threshold it will 'timeout'
+        -->
+        <parameter key="setono_sylius_image.timeout_threshold">30</parameter>
+    </parameters>
     <services>
         <service id="setono_sylius_image.command.process"
                  class="Setono\SyliusImagePlugin\Command\ProcessCommand">
@@ -18,6 +25,16 @@
         <service id="setono_sylius_image.command.synchronize_variant_configuration"
                  class="Setono\SyliusImagePlugin\Command\SynchronizeVariantConfigurationCommand">
             <argument type="service" id="setono_sylius_image.synchronizer.variant_configuration"/>
+
+            <tag name="console.command"/>
+        </service>
+
+        <service id="setono_sylius_image.command.timeout"
+                 class="Setono\SyliusImagePlugin\Command\TimeoutCommand">
+            <argument type="service" id="doctrine"/>
+            <argument type="service" id="workflow.registry"/>
+            <argument>%sylius.resources%</argument>
+            <argument>%setono_sylius_image.timeout_threshold%</argument>
 
             <tag name="console.command"/>
         </service>
