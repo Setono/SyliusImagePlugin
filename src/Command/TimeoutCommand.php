@@ -9,6 +9,7 @@ use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
 use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
+use Setono\SyliusImagePlugin\Provider\ProcessableResourceProviderInterface;
 use Setono\SyliusImagePlugin\Workflow\ProcessWorkflow;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Symfony\Component\Console\Command\Command;
@@ -34,30 +35,26 @@ final class TimeoutCommand extends Command
      */
     private SymfonyStyle $io;
 
-    private Registry $workflowRegistry;
+    private ProcessableResourceProviderInterface $processableResourceProvider;
 
-    /** @var array<string, array{classes: array{model: string}}> */
-    private array $resources;
+    private Registry $workflowRegistry;
 
     /**
      * This is the timeout threshold in minutes
      */
     private int $timeoutThreshold;
 
-    /**
-     * @param array<string, array{classes: array{model: string}}> $resources
-     */
     public function __construct(
         ManagerRegistry $managerRegistry,
+        ProcessableResourceProviderInterface $processableResourceProvider,
         Registry $workflowRegistry,
-        array $resources,
         int $timeoutThreshold
     ) {
         parent::__construct();
 
         $this->managerRegistry = $managerRegistry;
+        $this->processableResourceProvider = $processableResourceProvider;
         $this->workflowRegistry = $workflowRegistry;
-        $this->resources = $resources;
         $this->timeoutThreshold = $timeoutThreshold;
     }
 
@@ -68,18 +65,9 @@ final class TimeoutCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        /** @var array<array-key, class-string> $resourcesToProcess */
-        $resourcesToProcess = [];
+        $processableResources = $this->processableResourceProvider->getResources();
 
-        foreach ($this->resources as $resource) {
-            if (!is_a($resource['classes']['model'], ImageInterface::class, true)) {
-                continue;
-            }
-
-            $resourcesToProcess[] = $resource['classes']['model'];
-        }
-
-        if ([] === $resourcesToProcess) {
+        if ([] === $processableResources) {
             $this->io->writeln(sprintf('No resources implements the interface %s', ImageInterface::class));
 
             return 0;
@@ -94,8 +82,8 @@ final class TimeoutCommand extends Command
 
         $this->io->section('Processing resources');
 
-        foreach ($resourcesToProcess as $resourceToProcess) {
-            $this->processResource($resourceToProcess);
+        foreach ($processableResources as $processableResource) {
+            $this->processResource($processableResource);
         }
 
         return 0;

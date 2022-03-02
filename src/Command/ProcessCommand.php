@@ -14,6 +14,7 @@ use Setono\SyliusImagePlugin\Event\ProcessingStartedEvent;
 use Setono\SyliusImagePlugin\Message\Command\ProcessImage;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
 use Setono\SyliusImagePlugin\Model\VariantConfigurationInterface;
+use Setono\SyliusImagePlugin\Provider\ProcessableResourceProviderInterface;
 use Setono\SyliusImagePlugin\Repository\VariantConfigurationRepositoryInterface;
 use Setono\SyliusImagePlugin\Synchronizer\VariantConfigurationSynchronizerInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
@@ -41,6 +42,8 @@ final class ProcessCommand extends Command
      */
     private SymfonyStyle $io;
 
+    private ProcessableResourceProviderInterface $processableResourceProvider;
+
     private MessageBusInterface $commandBus;
 
     private VariantCollectionInterface $variantCollection;
@@ -51,33 +54,27 @@ final class ProcessCommand extends Command
 
     private VariantConfigurationSynchronizerInterface $variantConfigurationSynchronizer;
 
-    /** @var array<string, array{classes: array{model: string}}> */
-    private array $resources;
-
     private int $maximumNumberOfTries;
 
-    /**
-     * @param array<string, array{classes: array{model: string}}> $resources
-     */
     public function __construct(
         ManagerRegistry $managerRegistry,
+        ProcessableResourceProviderInterface $processableResourceProvider,
         MessageBusInterface $commandBus,
         VariantCollectionInterface $variantCollection,
         EventDispatcherInterface $eventDispatcher,
         VariantConfigurationRepositoryInterface $variantConfigurationRepository,
         VariantConfigurationSynchronizerInterface $variantConfigurationSynchronizer,
-        array $resources,
         int $maximumNumberOfTries = 10
     ) {
         parent::__construct();
 
         $this->managerRegistry = $managerRegistry;
+        $this->processableResourceProvider = $processableResourceProvider;
         $this->commandBus = $commandBus;
         $this->variantCollection = $variantCollection;
         $this->eventDispatcher = $eventDispatcher;
         $this->variantConfigurationRepository = $variantConfigurationRepository;
         $this->variantConfigurationSynchronizer = $variantConfigurationSynchronizer;
-        $this->resources = $resources;
         $this->maximumNumberOfTries = $maximumNumberOfTries;
     }
 
@@ -114,18 +111,9 @@ EOF
 
         $syncConfiguration = true === $input->getOption('sync-configuration');
 
-        /** @var array<array-key, class-string> $resourcesToProcess */
-        $resourcesToProcess = [];
+        $processableResources = $this->processableResourceProvider->getResources();
 
-        foreach ($this->resources as $resource) {
-            if (!is_a($resource['classes']['model'], ImageInterface::class, true)) {
-                continue;
-            }
-
-            $resourcesToProcess[] = $resource['classes']['model'];
-        }
-
-        if ([] === $resourcesToProcess) {
+        if ([] === $processableResources) {
             $this->io->writeln(sprintf('No resources implements the interface %s', ImageInterface::class));
 
             return 0;
@@ -147,8 +135,8 @@ EOF
 
         $this->eventDispatcher->dispatch(new ProcessingStartedEvent($variantCollection));
 
-        foreach ($resourcesToProcess as $resourceToProcess) {
-            $this->processResource($resourceToProcess, $variantConfiguration);
+        foreach ($processableResources as $processableResource) {
+            $this->processResource($processableResource, $variantConfiguration);
         }
 
         return 0;
