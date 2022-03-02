@@ -17,7 +17,6 @@ use Setono\SyliusImagePlugin\Model\VariantConfigurationInterface;
 use Setono\SyliusImagePlugin\Repository\VariantConfigurationRepositoryInterface;
 use Setono\SyliusImagePlugin\Synchronizer\VariantConfigurationSynchronizerInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
-use Sylius\Component\Resource\Factory\FactoryInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;

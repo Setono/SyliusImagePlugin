@@ -14,5 +14,12 @@
 
             <tag name="console.command"/>
         </service>
+
+        <service id="setono_sylius_image.command.synchronize_variant_configuration"
+                 class="Setono\SyliusImagePlugin\Command\SynchronizeVariantConfigurationCommand">
+            <argument type="service" id="setono_sylius_image.synchronizer.variant_configuration"/>
+
+            <tag name="console.command"/>
+        </service>
     </services>
 </container>
