@@ -18,7 +18,7 @@ final class SetonoSyliusImageExtension extends AbstractResourceExtension impleme
         /**
          * @psalm-suppress PossiblyNullArgument
          *
-         * @var array{driver: string, resources: array<string, mixed>, public_processed_path: string, filter_sets: array} $config
+         * @var array{driver: string, update_image_listener: bool, resources: array<string, mixed>, public_processed_path: string, filter_sets: array} $config
          */
         $config = $this->processConfiguration($this->getConfiguration([], $container), $configs);
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
@@ -29,6 +29,10 @@ final class SetonoSyliusImageExtension extends AbstractResourceExtension impleme
         $this->registerResources('setono_sylius_image', $config['driver'], $config['resources'], $container);
 
         $loader->load('services.xml');
+
+        if (true === $config['update_image_listener']) {
+            $loader->load('services/conditional/update_image_listener.xml');
+        }
     }
 
     public function prepend(ContainerBuilder $container): void
