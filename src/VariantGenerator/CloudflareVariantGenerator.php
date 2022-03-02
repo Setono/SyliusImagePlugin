@@ -8,6 +8,7 @@ use Gaufrette\File;
 use Setono\SyliusImagePlugin\Client\Cloudflare\ClientInterface;
 use Setono\SyliusImagePlugin\Client\Cloudflare\Response\ImageVariant;
 use Setono\SyliusImagePlugin\Config\Variant;
+use Setono\SyliusImagePlugin\Config\VariantCollectionInterface;
 use Setono\SyliusImagePlugin\File\ImageVariantFile;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
 use Symfony\Component\DependencyInjection\Container;
@@ -47,9 +48,11 @@ final class CloudflareVariantGenerator implements VariantGeneratorInterface
         return self::NAME;
     }
 
-    public function generate(ImageInterface $image, File $file, array $variants): iterable
+    public function generate(ImageInterface $image, File $file, VariantCollectionInterface $variantCollection): iterable
     {
         $tempDir = $this->getTempDir();
+
+        $variants = $variantCollection->getByGenerator($this);
 
         try {
             $filename = sprintf('%s/%s', $tempDir, self::pathToFilename((string) $image->getPath()));

@@ -15,7 +15,6 @@
             <argument type="service" id="setono_sylius_image.provider.processable_resource"/>
             <argument type="service" id="setono_sylius_image.command_bus"/>
             <argument type="service" id="setono_sylius_image.config.variant_collection"/>
-            <argument type="service" id="event_dispatcher"/>
             <argument type="service" id="setono_sylius_image.repository.variant_configuration"/>
             <argument type="service" id="setono_sylius_image.synchronizer.variant_configuration"/>
 

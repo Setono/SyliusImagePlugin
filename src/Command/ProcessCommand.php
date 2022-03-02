@@ -82,8 +82,10 @@ final class ProcessCommand extends Command
     {
         $this->addOption('sync-configuration', null, InputOption::VALUE_NONE, 'Sync plugin configuration with database');
 
+        $syncConfigCommand = SynchronizeVariantConfigurationCommand::getDefaultName();
+
         $this->setHelp(
-            <<<'EOF'
+            <<<EOF
 The <info>%command.name%</> command fetches the newest configuration from the database and processes all images that
 doesn't have the newest configuration.
 
@@ -91,7 +93,7 @@ You can automatically sync your plugin configuration with the database by using 
 
   <info>php %command.full_name% --sync-configuration</>
 
-This flag will do the exact same as the <info>setono:sylius-image:sync-variant-configuration</> command.
+This flag will do the exact same as the <info>{$syncConfigCommand}</> command.
 EOF
         );
     }
@@ -120,7 +122,8 @@ EOF
         }
 
         if ($syncConfiguration) {
-            $this->variantConfigurationSynchronizer->synchronize();
+            $variantCollection = $this->variantConfigurationSynchronizer->synchronize(true);
+            SynchronizeVariantConfigurationCommand::reportUnavailableVariants($variantCollection, $this->io);
         }
 
         $variantConfiguration = $this->variantConfigurationRepository->findNewest();

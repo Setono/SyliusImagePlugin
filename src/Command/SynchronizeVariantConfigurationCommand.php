@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace Setono\SyliusImagePlugin\Command;
 
+use Setono\SyliusImagePlugin\Config\Variant;
+use Setono\SyliusImagePlugin\Config\VariantCollectionInterface;
 use Setono\SyliusImagePlugin\Synchronizer\VariantConfigurationSynchronizerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 final class SynchronizeVariantConfigurationCommand extends Command
 {
     protected static $defaultName = 'setono:sylius-image:sync-variant-configuration';
+
+    public const NO_CREATE_FLAG = 'no-create';
 
     /** @var string|null */
     protected static $defaultDescription = 'Will synchronize the application configuration into the database';
@@ -35,6 +40,8 @@ final class SynchronizeVariantConfigurationCommand extends Command
 
     protected function configure(): void
     {
+        $this->addOption(self::NO_CREATE_FLAG, null, InputOption::VALUE_NONE, 'Do not attempt to create unavailable variants');
+
         $this->setHelp(
             <<<'EOF'
 The <info>%command.name%</> command  will compare your plugin configuration with the newest database configuration and if there are changes a new
@@ -74,10 +81,38 @@ EOF
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->variantConfigurationSynchronizer->synchronize();
+        $createUnavailableVariants = true !== $input->getOption(self::NO_CREATE_FLAG);
+        $variantCollection = $this->variantConfigurationSynchronizer->synchronize($createUnavailableVariants);
 
-        $this->io->success('Variant configuration synchronized');
+        self::reportUnavailableVariants($variantCollection, $this->io);
 
         return 0;
+    }
+
+    /**
+     * @return bool True if there are unavailable variants, otherwise false
+     */
+    public static function reportUnavailableVariants(VariantCollectionInterface $variantCollection, SymfonyStyle $io): bool
+    {
+        $rows = [];
+
+        /** @var Variant $variant */
+        foreach ($variantCollection as $variant) {
+            if (!$variant->isAvailable()) {
+                $rows[] = [$variant->name, $variant->isAvailable(), $variant->isCreatable()];
+            }
+        }
+
+        if (!empty($rows)) {
+            $io->warning('Variant configuration synchronized. Some variants are not available at their generator');
+
+            $io->table(['VARIANT', 'AVAILABLE', 'CREATABLE'], $rows);
+
+            return true;
+        }
+
+        $io->success('Variant configuration synchronized');
+
+        return false;
     }
 }

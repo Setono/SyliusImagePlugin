@@ -108,9 +108,7 @@ final class ProcessImageHandler implements MessageHandlerInterface
 
             /** @var VariantGeneratorInterface $variantGenerator */
             foreach ($this->variantGeneratorRegistry as $variantGenerator) {
-                $variants = $variantCollection->getByGenerator($variantGenerator);
-
-                foreach ($variantGenerator->generate($image, $imageFile, $variants) as $file) {
+                foreach ($variantGenerator->generate($image, $imageFile, $variantCollection) as $file) {
                     $this->processedImagesFilesystem->write(sprintf(
                         '%s/%s',
                         $file->getVariant(),

@@ -11,13 +11,5 @@
                  class="Setono\SyliusImagePlugin\EventSubscriber\UpdateRetryAtSubscriber">
             <tag name="kernel.event_subscriber"/>
         </service>
-
-        <!-- Cloudflare related -->
-        <service id="setono_sylius_image.event_subscriber.cloudflare.check_variants_are_created"
-                 class="Setono\SyliusImagePlugin\EventSubscriber\Cloudflare\CheckVariantsAreCreatedSubscriber">
-            <argument type="service" id="setono_sylius_image.client.cloudflare"/>
-
-            <tag name="kernel.event_subscriber"/>
-        </service>
     </services>
 </container>
