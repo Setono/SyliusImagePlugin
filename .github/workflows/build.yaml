@@ -75,7 +75,7 @@ jobs:
                         
                 symfony:
                     - "^4.4"
-                    - "^5.3"
+                    - "^5.0"
 
         steps:
             -   name: "Checkout"
@@ -117,7 +117,7 @@ jobs:
 
                 symfony:
                     - "^4.4"
-                    - "^5.3"
+                    - "^5.0"
 
         steps:
             -   name: "Checkout"
@@ -159,7 +159,7 @@ jobs:
 
                 symfony:
                     - "^4.4"
-                    - "^5.3"
+                    - "^5.0"
 
         steps:
             -   name: "Checkout"
@@ -198,7 +198,7 @@ jobs:
                         
                 symfony:
                     - "^4.4"
-                    - "^5.3"
+                    - "^5.0"
 
         steps:
             -   name: "Start MySQL"
