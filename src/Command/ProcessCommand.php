@@ -94,32 +94,7 @@ You can automatically sync your plugin configuration with the database by using 
 
   <info>php %command.full_name% --sync-configuration</>
 
-This will compare your plugin configuration with the newest database configuration and if there are changes a new
-database configuration will be saved and consequently be used as the newest configuration. This also implies that if you
-pass this flag and a new configuration is saved, all images will be processed. NOTE that this does NOT mean that
-all variants are reprocessed, just the new variants when comparing the new configuration to the old configuration.
-
-Example
--------
-
-<comment>Old configuration</comment>
-
-setono_sylius_image:
-    filter_sets:
-        sylius_shop_product_tiny_thumbnail: ~
-        sylius_shop_product_small_thumbnail: ~
-        sylius_shop_product_thumbnail: ~
-
-<comment>New configuration</comment>
-
-setono_sylius_image:
-    filter_sets:
-        sylius_shop_product_tiny_thumbnail: ~
-        sylius_shop_product_small_thumbnail: ~
-        sylius_shop_product_thumbnail: ~
-        sylius_shop_product_large_thumbnail: ~
-
-Here the <comment>sylius_shop_product_large_thumbnail</comment> will be processed for all images.
+This flag will do the exact same as the <info>setono:sylius-image:sync-variant-configuration</> command.
 EOF
         );
     }
