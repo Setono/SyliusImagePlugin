@@ -8,7 +8,6 @@ use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
 use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
-use Setono\SyliusImagePlugin\DependencyInjection\SetonoSyliusImageExtension;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
 use Setono\SyliusImagePlugin\Workflow\ProcessWorkflow;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
@@ -87,11 +86,13 @@ final class TimeoutCommand extends Command
         }
 
         $dtThreshold = new \DateTimeImmutable(sprintf('-%d min', $this->timeoutThreshold));
-        $this->io->info(sprintf(
+        $this->io->note(sprintf(
             'Will timeout images that\'s been processing longer than %d minutes (i.e. processingStateUpdatedAt <= %s)',
             $this->timeoutThreshold,
             $dtThreshold->format('Y-m-d H:i:s')
         ));
+
+        $this->io->section('Processing resources');
 
         foreach ($resourcesToProcess as $resourceToProcess) {
             $this->processResource($resourceToProcess);
@@ -105,7 +106,7 @@ final class TimeoutCommand extends Command
      */
     private function processResource(string $class): void
     {
-        $this->io->section(sprintf('Processing resource: %s', $class));
+        $this->io->text(sprintf('- %s', $class));
 
         $manager = $this->getManager($class);
 
