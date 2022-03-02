@@ -15,8 +15,8 @@ use Setono\SyliusImagePlugin\Message\Command\ProcessImage;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
 use Setono\SyliusImagePlugin\Model\VariantConfigurationInterface;
 use Setono\SyliusImagePlugin\Repository\VariantConfigurationRepositoryInterface;
+use Setono\SyliusImagePlugin\Synchronizer\VariantConfigurationSynchronizerInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
-use Sylius\Component\Resource\Factory\FactoryInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -49,7 +49,7 @@ final class ProcessCommand extends Command
 
     private VariantConfigurationRepositoryInterface $variantConfigurationRepository;
 
-    private FactoryInterface $variantConfigurationFactory;
+    private VariantConfigurationSynchronizerInterface $variantConfigurationSynchronizer;
 
     /** @var array<string, array{classes: array{model: string}}> */
     private array $resources;
@@ -65,7 +65,7 @@ final class ProcessCommand extends Command
         VariantCollectionInterface $variantCollection,
         EventDispatcherInterface $eventDispatcher,
         VariantConfigurationRepositoryInterface $variantConfigurationRepository,
-        FactoryInterface $variantConfigurationFactory,
+        VariantConfigurationSynchronizerInterface $variantConfigurationSynchronizer,
         array $resources,
         int $maximumNumberOfTries = 10
     ) {
@@ -76,7 +76,7 @@ final class ProcessCommand extends Command
         $this->variantCollection = $variantCollection;
         $this->eventDispatcher = $eventDispatcher;
         $this->variantConfigurationRepository = $variantConfigurationRepository;
-        $this->variantConfigurationFactory = $variantConfigurationFactory;
+        $this->variantConfigurationSynchronizer = $variantConfigurationSynchronizer;
         $this->resources = $resources;
         $this->maximumNumberOfTries = $maximumNumberOfTries;
     }
@@ -94,32 +94,7 @@ You can automatically sync your plugin configuration with the database by using 
 
   <info>php %command.full_name% --sync-configuration</>
 
-This will compare your plugin configuration with the newest database configuration and if there are changes a new
-database configuration will be saved and consequently be used as the newest configuration. This also implies that if you
-pass this flag and a new configuration is saved, all images will be processed. NOTE that this does NOT mean that
-all variants are reprocessed, just the new variants when comparing the new configuration to the old configuration.
-
-Example
--------
-
-<comment>Old configuration</comment>
-
-setono_sylius_image:
-    filter_sets:
-        sylius_shop_product_tiny_thumbnail: ~
-        sylius_shop_product_small_thumbnail: ~
-        sylius_shop_product_thumbnail: ~
-
-<comment>New configuration</comment>
-
-setono_sylius_image:
-    filter_sets:
-        sylius_shop_product_tiny_thumbnail: ~
-        sylius_shop_product_small_thumbnail: ~
-        sylius_shop_product_thumbnail: ~
-        sylius_shop_product_large_thumbnail: ~
-
-Here the <comment>sylius_shop_product_large_thumbnail</comment> will be processed for all images.
+This flag will do the exact same as the <info>setono:sylius-image:sync-variant-configuration</> command.
 EOF
         );
     }
@@ -156,7 +131,9 @@ EOF
             return 0;
         }
 
-        $this->syncConfiguration($syncConfiguration);
+        if ($syncConfiguration) {
+            $this->variantConfigurationSynchronizer->synchronize();
+        }
 
         $variantConfiguration = $this->variantConfigurationRepository->findNewest();
         if (null === $variantConfiguration) {
@@ -246,32 +223,5 @@ EOF
 
             $manager->clear();
         } while ([] !== $images);
-    }
-
-    private function syncConfiguration(bool $syncConfiguration): void
-    {
-        if (!$syncConfiguration) {
-            return;
-        }
-
-        $variantConfiguration = $this->variantConfigurationRepository->findNewest();
-        if (null !== $variantConfiguration) {
-            $variantCollection = $variantConfiguration->getVariantCollection();
-            Assert::notNull($variantCollection);
-
-            if ($variantCollection->equals($this->variantCollection)) {
-                return;
-            }
-        }
-
-        /** @var VariantConfigurationInterface|object $variantConfiguration */
-        $variantConfiguration = $this->variantConfigurationFactory->createNew();
-        Assert::isInstanceOf($variantConfiguration, VariantConfigurationInterface::class);
-
-        $variantConfiguration->setVariantCollection($this->variantCollection);
-
-        $manager = $this->getManager($variantConfiguration);
-        $manager->persist($variantConfiguration);
-        $manager->flush();
     }
 }
