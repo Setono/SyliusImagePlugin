@@ -10,6 +10,7 @@ use Gaufrette\FilesystemInterface;
 use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
 use Setono\SyliusImagePlugin\Config\Variant;
 use Setono\SyliusImagePlugin\Exception\ImageProcessingFailedException;
+use Setono\SyliusImagePlugin\File\ImageVariantFile;
 use Setono\SyliusImagePlugin\Message\Command\ProcessImage;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
 use Setono\SyliusImagePlugin\Repository\VariantConfigurationRepositoryInterface;
@@ -113,7 +114,7 @@ final class ProcessImageHandler implements MessageHandlerInterface
                     $this->processedImagesFilesystem->write(sprintf(
                         '%s/%s',
                         $file->getVariant(),
-                        self::replaceExtension((string) $image->getPath(), $file->getFileType())
+                        ImageVariantFile::replaceExtension((string) $image->getPath(), $file->getFileType())
                     ), file_get_contents($file->getPathname()), true);
 
                     @unlink($file->getPathname());
@@ -130,12 +131,5 @@ final class ProcessImageHandler implements MessageHandlerInterface
 
             throw ImageProcessingFailedException::fromCommand($message, $e);
         }
-    }
-
-    private static function replaceExtension(string $path, string $newExtension): string
-    {
-        $pathInfo = pathinfo($path);
-
-        return sprintf('%s/%s.%s', $pathInfo['dirname'], $pathInfo['filename'], $newExtension);
     }
 }

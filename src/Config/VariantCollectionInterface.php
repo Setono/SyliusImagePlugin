@@ -8,6 +8,9 @@ use Setono\SyliusImagePlugin\VariantGenerator\VariantGeneratorInterface;
 
 /**
  * A VariantCollectionInterface MUST be serializable
+ *
+ * @template-covariant TKey
+ * @extends \Traversable<TKey, Variant>
  */
 interface VariantCollectionInterface extends \Traversable
 {
