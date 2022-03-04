@@ -176,16 +176,17 @@ final class CloudflareVariantGenerator implements VariantGeneratorInterface
         return $dir;
     }
 
-    public function setup(VariantCollectionInterface $variantCollection): array
+    public function setup(VariantCollectionInterface $variantCollection): SetupResultInterface
     {
-        // TODO: Report availability / creation status
-        // TODO: Add synchronization of changes to variant
-        $this->ensureVariantsExists($variantCollection);
+        $setupResult = new SetupResult($this->getName());
 
-        return [];
+        // TODO: Add synchronization of changes to variant
+        $this->ensureVariantsExists($variantCollection, $setupResult);
+
+        return $setupResult;
     }
 
-    private function ensureVariantsExists(VariantCollectionInterface $variantCollection): void
+    private function ensureVariantsExists(VariantCollectionInterface $variantCollection, SetupResult $setupResult): void
     {
         $variants = $variantCollection->getByGenerator(self::NAME);
 
@@ -215,6 +216,9 @@ final class CloudflareVariantGenerator implements VariantGeneratorInterface
                     'width' => $item->width,
                     'height' => $item->height,
                 ]);
+                $setupResult->addMessage($item->name, 'variant created at Cloudflare');
+            } else {
+                $setupResult->addMessage($item->name, 'UNABLE TO CREATE VARIANT ON CLOUDFLARE');
             }
         }
     }

@@ -16,5 +16,5 @@ interface VariantConfigurationSynchronizerInterface
      *
      * @see VariantGeneratorInterface::setup();
      */
-    public function synchronize(bool $runSetup): array;
+    public function synchronize(bool $runSetup): VariantConfigurationSynchronizationResultInterface;
 }

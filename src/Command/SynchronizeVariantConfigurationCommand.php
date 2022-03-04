@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusImagePlugin\Command;
 
+use Setono\SyliusImagePlugin\Synchronizer\VariantConfigurationSynchronizationResultInterface;
 use Setono\SyliusImagePlugin\Synchronizer\VariantConfigurationSynchronizerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -80,15 +81,22 @@ EOF
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $createUnavailableVariants = true !== $input->getOption(self::SKIP_SETUP_FLAG);
+
         $synchronizeResult = $this->variantConfigurationSynchronizer->synchronize($createUnavailableVariants);
 
         self::reportSynchronizationResult($synchronizeResult, $this->io);
 
+        if ($synchronizeResult->isStopExecution()) {
+            $this->io->warning('Execution halted by synchronization');
+
+            return 1;
+        }
+
         return 0;
     }
 
-    public static function reportSynchronizationResult(array $synchronizeResult, SymfonyStyle $io): void
+    public static function reportSynchronizationResult(VariantConfigurationSynchronizationResultInterface $synchronizeResult, SymfonyStyle $io): void
     {
-        $io->success('Variant configuration synchronized');
+        $synchronizeResult->reportResults($io);
     }
 }

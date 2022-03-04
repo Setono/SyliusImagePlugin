@@ -130,6 +130,12 @@ EOF
             $runSetup = true !== $input->getOption(SynchronizeVariantConfigurationCommand::SKIP_SETUP_FLAG);
             $synchronizationResult = $this->variantConfigurationSynchronizer->synchronize($runSetup);
             SynchronizeVariantConfigurationCommand::reportSynchronizationResult($synchronizationResult, $this->io);
+
+            if ($synchronizationResult->isStopExecution()) {
+                $this->io->warning('Execution halted by synchronization');
+
+                return 1;
+            }
         }
 
         $variantConfiguration = $this->variantConfigurationRepository->findNewest();

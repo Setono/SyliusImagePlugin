@@ -25,8 +25,6 @@ interface VariantGeneratorInterface
      * Use this function to perform synchronization of vendor specific settings, if any.
      *
      * @see VariantConfigurationSynchronizerInterface::synchronize();
-     *
-     * @return array // TODO: Make result type more specific / maybe make it able to block further execution?
      */
-    public function setup(VariantCollectionInterface $variantCollection): array;
+    public function setup(VariantCollectionInterface $variantCollection): SetupResultInterface;
 }

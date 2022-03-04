@@ -40,27 +40,34 @@ final class VariantConfigurationSynchronizer implements VariantConfigurationSync
         $this->generatorRegistry = $generatorRegistry;
     }
 
-    public function synchronize(bool $runSetup): array
+    public function synchronize(bool $runSetup): VariantConfigurationSynchronizationResultInterface
     {
+        $syncResult = new VariantConfigurationSynchronizationResult();
+
         $variantConfiguration = $this->variantConfigurationRepository->findNewest();
         if (null !== $variantConfiguration) {
             $variantCollection = $variantConfiguration->getVariantCollection();
             Assert::notNull($variantCollection);
 
             if ($variantCollection->equals($this->variantCollection)) {
+                $syncResult->addMessage('VariantCollection', 'Variant configuration has not changed. No synchronization performed');
                 // TODO: Should runSetup be possible even if the variant collections are the same?
-                return [];
+                return $syncResult;
             }
         }
 
-        $setupResults = [];
         if ($runSetup) {
             $generators = array_unique(array_map(static fn (Variant $variant) => $variant->generator, $this->variantCollection->toArray()));
 
             foreach ($generators as $generatorName) {
                 $generator = $this->generatorRegistry->get($generatorName);
-                $setupResults[$generatorName] = $generator->setup($this->variantCollection);
+                $setupResult = $generator->setup($this->variantCollection);
+                $syncResult->addSetupResult($setupResult);
             }
+        }
+
+        if ($syncResult->isStopExecution()) {
+            return $syncResult;
         }
 
         /** @var VariantConfigurationInterface|object $variantConfiguration */
@@ -73,6 +80,6 @@ final class VariantConfigurationSynchronizer implements VariantConfigurationSync
         $manager->persist($variantConfiguration);
         $manager->flush();
 
-        return $setupResults;
+        return $syncResult;
     }
 }
