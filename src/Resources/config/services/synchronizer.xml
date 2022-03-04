@@ -8,7 +8,7 @@
             <argument type="service" id="setono_sylius_image.repository.variant_configuration"/>
             <argument type="service" id="setono_sylius_image.config.variant_collection"/>
             <argument type="service" id="doctrine"/>
-            <argument type="service" id="setono_sylius_image.variant_generator.registry" />
+            <argument type="service" id="setono_sylius_image.registry.variant_generator" />
         </service>
     </services>
 </container>

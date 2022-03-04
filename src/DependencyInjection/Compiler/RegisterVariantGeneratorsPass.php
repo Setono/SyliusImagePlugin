@@ -12,11 +12,11 @@ final class RegisterVariantGeneratorsPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
-        if (!$container->has('setono_sylius_image.variant_generator.registry')) {
+        if (!$container->has('setono_sylius_image.registry.variant_generator')) {
             return;
         }
 
-        $registry = $container->getDefinition('setono_sylius_image.variant_generator.registry');
+        $registry = $container->getDefinition('setono_sylius_image.registry.variant_generator');
 
         /** @var string $id */
         foreach (array_keys($container->findTaggedServiceIds('setono_sylius_image.variant_generator')) as $id) {

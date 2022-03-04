@@ -9,8 +9,8 @@ use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
 use Setono\SyliusImagePlugin\Config\Variant;
 use Setono\SyliusImagePlugin\Config\VariantCollectionInterface;
 use Setono\SyliusImagePlugin\Model\VariantConfigurationInterface;
+use Setono\SyliusImagePlugin\Registry\VariantGeneratorRegistryInterface;
 use Setono\SyliusImagePlugin\Repository\VariantConfigurationRepositoryInterface;
-use Setono\SyliusImagePlugin\VariantGenerator\VariantGeneratorRegistryInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use Webmozart\Assert\Assert;
 

@@ -2,11 +2,6 @@
 <container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <!-- TODO: Change to 'setono_sylius_image.registry.variant_generator -->
-        <service id="setono_sylius_image.variant_generator.registry"
-                 class="Setono\SyliusImagePlugin\VariantGenerator\VariantGeneratorRegistry">
-        </service>
-
         <service id="setono_sylius_image.variant_generator.cloudflare"
                  class="Setono\SyliusImagePlugin\VariantGenerator\CloudflareVariantGenerator">
             <argument type="service" id="setono_sylius_image.client.cloudflare"/>

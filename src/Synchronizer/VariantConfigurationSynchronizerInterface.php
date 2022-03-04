@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusImagePlugin\Synchronizer;
 
-use Setono\SyliusImagePlugin\VariantGenerator\VariantGeneratorInterface;
+use Setono\SyliusImagePlugin\Registry\VariantGeneratorInterface;
 
 interface VariantConfigurationSynchronizerInterface
 {
