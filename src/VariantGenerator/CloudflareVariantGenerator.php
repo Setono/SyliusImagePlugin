@@ -7,6 +7,7 @@ namespace Setono\SyliusImagePlugin\VariantGenerator;
 use Gaufrette\File;
 use Setono\SyliusImagePlugin\Client\Cloudflare\ClientInterface;
 use Setono\SyliusImagePlugin\Client\Cloudflare\Response\ImageVariant;
+use Setono\SyliusImagePlugin\Client\Cloudflare\Response\VariantResult;
 use Setono\SyliusImagePlugin\Config\Variant;
 use Setono\SyliusImagePlugin\Config\VariantCollectionInterface;
 use Setono\SyliusImagePlugin\File\ImageVariantFile;
@@ -173,5 +174,56 @@ final class CloudflareVariantGenerator implements VariantGeneratorInterface
         $this->filesystem->mkdir($dir);
 
         return $dir;
+    }
+
+    public function setup(VariantCollectionInterface $variantCollection): array
+    {
+        // TODO: Report availability / creation status
+        // TODO: Add synchronization of changes to variant
+        $this->ensureVariantsExists($variantCollection);
+
+        return [];
+    }
+
+    private function ensureVariantsExists(VariantCollectionInterface $variantCollection): void
+    {
+        $variants = $variantCollection->getByGenerator(self::NAME);
+
+        if (empty($variants)) {
+            return;
+        }
+
+        $existingVariants = array_map(static function (VariantResult $variantResult) {
+            return Container::underscore($variantResult->id); // variants in Cloudflare are saved as camel case
+        }, $this->client->getVariants()->result->variants);
+
+        /** @var array<array-key, Variant> $variantsToCreate */
+        $variantsToCreate = [];
+
+        foreach ($variants as $variant) {
+            if (in_array($variant->name, $existingVariants, true)) {
+                continue;
+            }
+
+            $variantsToCreate[] = $variant;
+        }
+
+        foreach ($variantsToCreate as $item) {
+            if (self::isVariantCreatable($item)) {
+                $this->client->createVariant($item->name, [
+                    'fit' => $item->fit,
+                    'width' => $item->width,
+                    'height' => $item->height,
+                ]);
+            }
+        }
+    }
+
+    private static function isVariantCreatable(Variant $variant): bool
+    {
+        return $variant->width !== null
+            && $variant->height !== null
+            && $variant->fit !== null
+            && in_array($variant->fit, Variant::AVAILABLE_FITS, true);
     }
 }

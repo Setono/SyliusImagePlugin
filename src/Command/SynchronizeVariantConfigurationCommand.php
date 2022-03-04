@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Setono\SyliusImagePlugin\Command;
 
-use Setono\SyliusImagePlugin\Config\Variant;
-use Setono\SyliusImagePlugin\Config\VariantCollectionInterface;
 use Setono\SyliusImagePlugin\Synchronizer\VariantConfigurationSynchronizerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -17,7 +15,7 @@ final class SynchronizeVariantConfigurationCommand extends Command
 {
     protected static $defaultName = 'setono:sylius-image:sync-variant-configuration';
 
-    public const NO_CREATE_FLAG = 'no-create';
+    public const SKIP_SETUP_FLAG = 'skip-setup';
 
     /** @var string|null */
     protected static $defaultDescription = 'Will synchronize the application configuration into the database';
@@ -40,7 +38,7 @@ final class SynchronizeVariantConfigurationCommand extends Command
 
     protected function configure(): void
     {
-        $this->addOption(self::NO_CREATE_FLAG, null, InputOption::VALUE_NONE, 'Do not attempt to create unavailable variants');
+        $this->addOption(self::SKIP_SETUP_FLAG, null, InputOption::VALUE_NONE, 'Skip setup when synchronizing variant configuration');
 
         $this->setHelp(
             <<<'EOF'
@@ -81,38 +79,16 @@ EOF
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $createUnavailableVariants = true !== $input->getOption(self::NO_CREATE_FLAG);
-        $variantCollection = $this->variantConfigurationSynchronizer->synchronize($createUnavailableVariants);
+        $createUnavailableVariants = true !== $input->getOption(self::SKIP_SETUP_FLAG);
+        $synchronizeResult = $this->variantConfigurationSynchronizer->synchronize($createUnavailableVariants);
 
-        self::reportUnavailableVariants($variantCollection, $this->io);
+        self::reportSynchronizationResult($synchronizeResult, $this->io);
 
         return 0;
     }
 
-    /**
-     * @return bool True if there are unavailable variants, otherwise false
-     */
-    public static function reportUnavailableVariants(VariantCollectionInterface $variantCollection, SymfonyStyle $io): bool
+    public static function reportSynchronizationResult(array $synchronizeResult, SymfonyStyle $io): void
     {
-        $rows = [];
-
-        /** @var Variant $variant */
-        foreach ($variantCollection as $variant) {
-            if (!$variant->isAvailable()) {
-                $rows[] = [$variant->name, $variant->isAvailable(), $variant->isCreatable()];
-            }
-        }
-
-        if (!empty($rows)) {
-            $io->warning('Variant configuration synchronized. Some variants are not available at their generator');
-
-            $io->table(['VARIANT', 'AVAILABLE', 'CREATABLE'], $rows);
-
-            return true;
-        }
-
         $io->success('Variant configuration synchronized');
-
-        return false;
     }
 }

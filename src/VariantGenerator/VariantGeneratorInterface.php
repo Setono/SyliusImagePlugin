@@ -8,6 +8,7 @@ use Gaufrette\File;
 use Setono\SyliusImagePlugin\Config\VariantCollectionInterface;
 use Setono\SyliusImagePlugin\File\ImageVariantFile;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
+use Setono\SyliusImagePlugin\Synchronizer\VariantConfigurationSynchronizerInterface;
 
 interface VariantGeneratorInterface
 {
@@ -17,4 +18,15 @@ interface VariantGeneratorInterface
      * @return iterable<ImageVariantFile>
      */
     public function generate(ImageInterface $image, File $file, VariantCollectionInterface $variantCollection): iterable;
+
+    /**
+     * This function may be called when the `VariantConfigurationSynchronizer` is run.
+     *
+     * Use this function to perform synchronization of vendor specific settings, if any.
+     *
+     * @see VariantConfigurationSynchronizerInterface::synchronize();
+     *
+     * @return array // TODO: Make result type more specific / maybe make it able to block further execution?
+     */
+    public function setup(VariantCollectionInterface $variantCollection): array;
 }

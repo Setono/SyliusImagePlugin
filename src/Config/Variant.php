@@ -59,16 +59,14 @@ final class Variant
 
     public ?int $height;
 
-    public string $fit;
-
-    private bool $available;
+    public ?string $fit;
 
     /**
      * The name of the generator to use for this variant, i.e. 'cloudflare'
      */
     public string $generator;
 
-    public function __construct(string $name, string $generator, ?int $width, ?int $height, string $fit, bool $available)
+    public function __construct(string $name, string $generator, ?int $width, ?int $height, ?string $fit)
     {
         Assert::stringNotEmpty($name);
         Assert::nullOrGreaterThan($width, 0);
@@ -79,14 +77,13 @@ final class Variant
         $this->width = $width;
         $this->height = $height;
         $this->fit = $fit;
-        $this->available = $available;
     }
 
     public static function fromFilterSet(string $name, string $generator, array $filterSet): self
     {
         $filters = $filterSet['filters'] ?? [];
 
-        return new self($name, $generator, $filters['thumbnail']['size'][0] ?? null, $filters['thumbnail']['size'][1] ?? null, self::FIT_SCALE_DOWN, false);
+        return new self($name, $generator, $filters['thumbnail']['size'][0] ?? null, $filters['thumbnail']['size'][1] ?? null, self::FIT_SCALE_DOWN);
     }
 
     public function equals(self $other): bool
@@ -100,23 +97,6 @@ final class Variant
     public function __toString(): string
     {
         return $this->name;
-    }
-
-    public function isAvailable(): bool
-    {
-        return $this->available;
-    }
-
-    public function setAvailable(bool $available): void
-    {
-        $this->available = $available;
-    }
-
-    public function isCreatable(): bool
-    {
-        return $this->width !== null
-            && $this->height !== null
-            && in_array($this->fit, self::AVAILABLE_FITS);
     }
 
     /**

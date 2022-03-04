@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusImagePlugin\Synchronizer;
 
-use Setono\SyliusImagePlugin\Config\VariantCollectionInterface;
+use Setono\SyliusImagePlugin\VariantGenerator\VariantGeneratorInterface;
 
 interface VariantConfigurationSynchronizerInterface
 {
@@ -12,7 +12,9 @@ interface VariantConfigurationSynchronizerInterface
      * This will synchronize the variant configuration saved in the database
      * with the variant configuration given by the application configuration
      *
-     * @param bool $createVariantsIfNotExists If true, will create variants that are not yet available at the generator
+     * @param bool $runSetup If true, the `setup` method on the relevant VariantGenerators will be called
+     *
+     * @see VariantGeneratorInterface::setup();
      */
-    public function synchronize(bool $createVariantsIfNotExists): VariantCollectionInterface;
+    public function synchronize(bool $runSetup): array;
 }
