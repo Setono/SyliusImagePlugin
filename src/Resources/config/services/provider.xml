@@ -4,7 +4,7 @@
     <services>
         <service id="setono_sylius_image.provider.processable_resource"
                  class="Setono\SyliusImagePlugin\Provider\ProcessableResourceProvider">
-            <argument>%sylius.resources%</argument>
+            <argument type="service" id="setono_sylius_image.config.processable_resource_collection"/>
         </service>
     </services>
 </container>

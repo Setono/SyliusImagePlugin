@@ -9,6 +9,8 @@ use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
+use Setono\SyliusImagePlugin\Config\ProcessableResource;
+use Setono\SyliusImagePlugin\Config\ProcessableResourceCollectionInterface;
 use Setono\SyliusImagePlugin\Config\VariantCollectionInterface;
 use Setono\SyliusImagePlugin\Event\ProcessingStartedEvent;
 use Setono\SyliusImagePlugin\Message\Command\ProcessImage;
@@ -64,6 +66,7 @@ final class ProcessCommand extends Command
         EventDispatcherInterface $eventDispatcher,
         VariantConfigurationRepositoryInterface $variantConfigurationRepository,
         VariantConfigurationSynchronizerInterface $variantConfigurationSynchronizer,
+        ProcessableResourceCollectionInterface $processableResourceCollection,
         int $maximumNumberOfTries = 10
     ) {
         parent::__construct();
@@ -142,17 +145,14 @@ EOF
         return 0;
     }
 
-    /**
-     * @param class-string $class
-     */
-    private function processResource(string $class, VariantConfigurationInterface $variantConfiguration): void
+    private function processResource(ProcessableResource $resource, VariantConfigurationInterface $variantConfiguration): void
     {
-        $this->io->section(sprintf('Processing resource: %s', $class));
+        $this->io->section(sprintf('Processing resource: %s', $resource->getClassName()));
 
-        $manager = $this->getManager($class);
+        $manager = $this->getManager($resource->getClassName());
 
         /** @var ObjectRepository|EntityRepository $repository */
-        $repository = $manager->getRepository($class);
+        $repository = $manager->getRepository($resource->getClassName());
         Assert::isInstanceOf($repository, EntityRepository::class);
 
         $i = 0;

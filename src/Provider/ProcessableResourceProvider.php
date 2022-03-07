@@ -4,31 +4,23 @@ declare(strict_types=1);
 
 namespace Setono\SyliusImagePlugin\Provider;
 
-use Setono\SyliusImagePlugin\Model\ImageInterface;
+use Setono\SyliusImagePlugin\Config\ProcessableResourceCollectionInterface;
 
 final class ProcessableResourceProvider implements ProcessableResourceProviderInterface
 {
-    /** @var array<string, array{classes: array{model: class-string}}> */
-    private array $resources;
+    private ProcessableResourceCollectionInterface $processableResourceCollection;
 
-    /**
-     * @param array<string, array{classes: array{model: class-string}}> $resources
-     */
-    public function __construct(array $resources)
+    public function __construct(ProcessableResourceCollectionInterface $processableResourceCollection)
     {
-        $this->resources = $resources;
+        $this->processableResourceCollection = $processableResourceCollection;
     }
 
     public function getResources(): array
     {
         $processableResources = [];
 
-        foreach ($this->resources as $resource) {
-            if (!is_a($resource['classes']['model'], ImageInterface::class, true)) {
-                continue;
-            }
-
-            $processableResources[] = $resource['classes']['model'];
+        foreach ($this->processableResourceCollection as $processableResource) {
+            $processableResources[] = $processableResource;
         }
 
         return $processableResources;

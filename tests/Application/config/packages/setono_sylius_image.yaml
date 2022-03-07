@@ -7,3 +7,5 @@ setono_sylius_image:
         sylius_shop_product_small_thumbnail: ~
         sylius_shop_product_thumbnail: ~
         sylius_shop_product_large_thumbnail: ~
+    processable_resources: 
+        sylius.product_image: ~

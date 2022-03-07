@@ -8,6 +8,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
 use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
+use Setono\SyliusImagePlugin\Config\ProcessableResource;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
 use Setono\SyliusImagePlugin\Provider\ProcessableResourceProviderInterface;
 use Setono\SyliusImagePlugin\Workflow\ProcessWorkflow;
@@ -89,17 +90,14 @@ final class TimeoutCommand extends Command
         return 0;
     }
 
-    /**
-     * @param class-string $class
-     */
-    private function processResource(string $class): void
+    private function processResource(ProcessableResource $processableResource): void
     {
-        $this->io->text(sprintf('- %s', $class));
+        $this->io->text(sprintf('- %s', $processableResource->getClassName()));
 
-        $manager = $this->getManager($class);
+        $manager = $this->getManager($processableResource->getClassName());
 
         /** @var ObjectRepository|EntityRepository $repository */
-        $repository = $manager->getRepository($class);
+        $repository = $manager->getRepository($processableResource->getClassName());
         Assert::isInstanceOf($repository, EntityRepository::class);
 
         $workflow = null;
