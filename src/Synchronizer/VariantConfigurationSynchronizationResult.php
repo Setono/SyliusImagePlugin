@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Setono\SyliusImagePlugin\Synchronizer;
 
 use Setono\SyliusImagePlugin\VariantGenerator\SetupResultInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
 
 class VariantConfigurationSynchronizationResult implements VariantConfigurationSynchronizationResultInterface
 {
@@ -20,15 +19,9 @@ class VariantConfigurationSynchronizationResult implements VariantConfigurationS
         $this->messages[$topic] = $message;
     }
 
-    public function isStopExecution(): bool
+    public function getMessages(): array
     {
-        foreach ($this->setupResults as $setupResult) {
-            if ($setupResult->isStopExecution()) {
-                return true;
-            }
-        }
-
-        return false;
+        return $this->messages;
     }
 
     public function addSetupResult(SetupResultInterface $setupResult): void
@@ -36,16 +29,8 @@ class VariantConfigurationSynchronizationResult implements VariantConfigurationS
         $this->setupResults[$setupResult->getGeneratorName()] = $setupResult;
     }
 
-    public function reportResults(SymfonyStyle $io): void
+    public function getSetupResults(): array
     {
-        if (!empty($this->messages)) {
-            $io->writeln('Messages from synchronization');
-            $io->definitionList(...$this->messages);
-        }
-
-        foreach ($this->setupResults as $setupResult) {
-            $io->writeln(sprintf('Messages from \'%s\' generator setup', $setupResult->getGeneratorName()));
-            $setupResult->reportResults($io);
-        }
+        return $this->setupResults;
     }
 }

@@ -16,7 +16,7 @@ final class SynchronizeVariantConfigurationCommand extends Command
 {
     protected static $defaultName = 'setono:sylius-image:sync-variant-configuration';
 
-    public const SKIP_SETUP_FLAG = 'skip-setup';
+    public const OPTION_SKIP_SETUP = 'skip-setup';
 
     /** @var string|null */
     protected static $defaultDescription = 'Will synchronize the application configuration into the database';
@@ -39,7 +39,7 @@ final class SynchronizeVariantConfigurationCommand extends Command
 
     protected function configure(): void
     {
-        $this->addOption(self::SKIP_SETUP_FLAG, null, InputOption::VALUE_NONE, 'Skip setup when synchronizing variant configuration');
+        $this->addOption(self::OPTION_SKIP_SETUP, null, InputOption::VALUE_NONE, 'Skip setup when synchronizing variant configuration');
 
         $this->setHelp(
             <<<'EOF'
@@ -80,23 +80,29 @@ EOF
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $createUnavailableVariants = true !== $input->getOption(self::SKIP_SETUP_FLAG);
+        $skipSetup = true !== $input->getOption(self::OPTION_SKIP_SETUP);
 
-        $synchronizeResult = $this->variantConfigurationSynchronizer->synchronize($createUnavailableVariants);
+        $synchronizeResult = $this->variantConfigurationSynchronizer->synchronize($skipSetup);
 
         self::reportSynchronizationResult($synchronizeResult, $this->io);
-
-        if ($synchronizeResult->isStopExecution()) {
-            $this->io->warning('Execution halted by synchronization');
-
-            return 1;
-        }
 
         return 0;
     }
 
     public static function reportSynchronizationResult(VariantConfigurationSynchronizationResultInterface $synchronizeResult, SymfonyStyle $io): void
     {
-        $synchronizeResult->reportResults($io);
+        if (!empty($synchronizeResult->getMessages())) {
+            $io->writeln('Messages from synchronization');
+            $io->definitionList(...$synchronizeResult->getMessages());
+        }
+
+        foreach ($synchronizeResult->getSetupResults() as $setupResult) {
+            if (empty($setupResult->getMessages())) {
+                $io->writeln(sprintf('Nothing to report from \'%s\'', $setupResult->getGeneratorName()));
+            } else {
+                $io->writeln(sprintf('Messages from \'%s\' generator setup', $setupResult->getGeneratorName()));
+                $io->definitionList(...$setupResult->getMessages());
+            }
+        }
     }
 }

@@ -71,6 +71,7 @@ final class Variant
         Assert::stringNotEmpty($name);
         Assert::nullOrGreaterThan($width, 0);
         Assert::nullOrGreaterThan($height, 0);
+        Assert::nullOrStringNotEmpty($fit);
 
         $this->name = $name;
         $this->generator = $generator;

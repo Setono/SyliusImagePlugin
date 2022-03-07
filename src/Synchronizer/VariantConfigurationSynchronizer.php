@@ -66,10 +66,6 @@ final class VariantConfigurationSynchronizer implements VariantConfigurationSync
             }
         }
 
-        if ($syncResult->isStopExecution()) {
-            return $syncResult;
-        }
-
         /** @var VariantConfigurationInterface|object $variantConfiguration */
         $variantConfiguration = $this->variantConfigurationFactory->createNew();
         Assert::isInstanceOf($variantConfiguration, VariantConfigurationInterface::class);

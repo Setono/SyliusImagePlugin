@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Setono\SyliusImagePlugin\Synchronizer;
 
-use Symfony\Component\Console\Style\SymfonyStyle;
+use Setono\SyliusImagePlugin\VariantGenerator\SetupResultInterface;
 
 interface VariantConfigurationSynchronizationResultInterface
 {
-    // TODO: Should we just remove this and let implementors throw exceptions if they want execution halted?
-    public function isStopExecution(): bool;
+    /** @return array<string, string> */
+    public function getMessages(): array;
 
-    public function reportResults(SymfonyStyle $io): void;
+    /** @return array<string, SetupResultInterface> */
+    public function getSetupResults(): array;
 }

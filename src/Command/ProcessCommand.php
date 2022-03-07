@@ -56,7 +56,7 @@ final class ProcessCommand extends Command
 
     private int $maximumNumberOfTries;
 
-    public const SYNC_CONFIGURATION_FLAG = 'sync-configuration';
+    public const OPTION_SYNC_CONFIGURATION = 'sync-configuration';
 
     public function __construct(
         ManagerRegistry $managerRegistry,
@@ -82,25 +82,20 @@ final class ProcessCommand extends Command
 
     protected function configure(): void
     {
-        $this->addOption(self::SYNC_CONFIGURATION_FLAG, null, InputOption::VALUE_NONE, 'Sync plugin configuration with database');
-        $this->addOption(SynchronizeVariantConfigurationCommand::SKIP_SETUP_FLAG, null, InputOption::VALUE_NONE, sprintf('Skip setup - only applicable if \'--%s\' flag is set', self::SYNC_CONFIGURATION_FLAG));
+        $this->addOption(self::OPTION_SYNC_CONFIGURATION, null, InputOption::VALUE_NONE, 'Sync plugin configuration with database');
+        $this->addOption(SynchronizeVariantConfigurationCommand::OPTION_SKIP_SETUP, null, InputOption::VALUE_NONE, sprintf('Skip setup - only applicable if \'--%s\' flag is set', self::OPTION_SYNC_CONFIGURATION));
 
-        $syncConfigCommand = SynchronizeVariantConfigurationCommand::getDefaultName();
-
-        $syncConfigFlag = self::SYNC_CONFIGURATION_FLAG; // Heredoc does not allow interpretation of constants
-
-        $this->setHelp(
-            <<<EOF
+        $this->setHelp(sprintf(<<<'EOF'
 The <info>%command.name%</> command fetches the newest configuration from the database and processes all images that
 doesn't have the newest configuration.
 
-You can automatically sync your plugin configuration with the database by using the <comment>--{$syncConfigFlag}</comment> flag:
+You can automatically sync your plugin configuration with the database by using the <comment>--%1$s</comment> flag:
 
-  <info>php %command.full_name% --{$syncConfigFlag}</>
+  <info>php %command.full_name% --%1$s</>
 
-This flag will do the exact same as the <info>{$syncConfigCommand}</> command.
+This flag will do the exact same as the <info>%s</> command.
 EOF
-        );
+            , self::OPTION_SYNC_CONFIGURATION, SynchronizeVariantConfigurationCommand::getDefaultName() ?? 'sync-variant-configuration'));
     }
 
     protected function initialize(InputInterface $input, OutputInterface $output): void
@@ -116,7 +111,7 @@ EOF
             return 0;
         }
 
-        $syncConfiguration = true === $input->getOption(self::SYNC_CONFIGURATION_FLAG);
+        $syncConfiguration = true === $input->getOption(self::OPTION_SYNC_CONFIGURATION);
 
         $processableResources = $this->processableResourceProvider->getResources();
 
@@ -127,15 +122,9 @@ EOF
         }
 
         if ($syncConfiguration) {
-            $runSetup = true !== $input->getOption(SynchronizeVariantConfigurationCommand::SKIP_SETUP_FLAG);
+            $runSetup = true !== $input->getOption(SynchronizeVariantConfigurationCommand::OPTION_SKIP_SETUP);
             $synchronizationResult = $this->variantConfigurationSynchronizer->synchronize($runSetup);
             SynchronizeVariantConfigurationCommand::reportSynchronizationResult($synchronizationResult, $this->io);
-
-            if ($synchronizationResult->isStopExecution()) {
-                $this->io->warning('Execution halted by synchronization');
-
-                return 1;
-            }
         }
 
         $variantConfiguration = $this->variantConfigurationRepository->findNewest();

@@ -20,9 +20,9 @@ interface VariantGeneratorInterface
     public function generate(ImageInterface $image, File $file, VariantCollectionInterface $variantCollection): iterable;
 
     /**
-     * This function may be called when the `VariantConfigurationSynchronizer` is run.
+     * This method may be called when the `VariantConfigurationSynchronizer` is run.
      *
-     * Use this function to perform synchronization of vendor specific settings, if any.
+     * Use this method to perform synchronization of vendor specific settings, if any.
      *
      * @see VariantConfigurationSynchronizerInterface::synchronize();
      */
