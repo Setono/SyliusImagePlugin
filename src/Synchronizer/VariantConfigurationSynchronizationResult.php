@@ -8,15 +8,15 @@ use Setono\SyliusImagePlugin\VariantGenerator\SetupResultInterface;
 
 class VariantConfigurationSynchronizationResult implements VariantConfigurationSynchronizationResultInterface
 {
-    /** @var array<string, string> */
+    /** @var list<string> */
     private array $messages = [];
 
-    /** @var array<string, SetupResultInterface> */
+    /** @var list<SetupResultInterface> */
     private array $setupResults = [];
 
-    public function addMessage(string $topic, string $message): void
+    public function addMessage(string $message): void
     {
-        $this->messages[$topic] = $message;
+        $this->messages[] = $message;
     }
 
     public function getMessages(): array
@@ -24,9 +24,14 @@ class VariantConfigurationSynchronizationResult implements VariantConfigurationS
         return $this->messages;
     }
 
+    public function hasMessages(): bool
+    {
+        return !empty($this->messages);
+    }
+
     public function addSetupResult(SetupResultInterface $setupResult): void
     {
-        $this->setupResults[$setupResult->getGeneratorName()] = $setupResult;
+        $this->setupResults[] = $setupResult;
     }
 
     public function getSetupResults(): array

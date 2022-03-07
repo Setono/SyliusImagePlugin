@@ -91,17 +91,17 @@ EOF
 
     public static function reportSynchronizationResult(VariantConfigurationSynchronizationResultInterface $synchronizeResult, SymfonyStyle $io): void
     {
-        if (!empty($synchronizeResult->getMessages())) {
+        if ($synchronizeResult->hasMessages()) {
             $io->writeln('Messages from synchronization');
-            $io->definitionList(...$synchronizeResult->getMessages());
+            $io->listing($synchronizeResult->getMessages());
         }
 
         foreach ($synchronizeResult->getSetupResults() as $setupResult) {
-            if (empty($setupResult->getMessages())) {
-                $io->writeln(sprintf('Nothing to report from \'%s\'', $setupResult->getGeneratorName()));
+            if ($setupResult->hasMessages()) {
+                $io->writeln(sprintf('Messages from \'%s\' generator setup', $setupResult->getGenerator()->getName()));
+                $io->listing($setupResult->getMessages());
             } else {
-                $io->writeln(sprintf('Messages from \'%s\' generator setup', $setupResult->getGeneratorName()));
-                $io->definitionList(...$setupResult->getMessages());
+                $io->writeln(sprintf('Nothing to report from \'%s\'', $setupResult->getGenerator()->getName()));
             }
         }
     }

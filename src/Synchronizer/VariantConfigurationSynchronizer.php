@@ -40,21 +40,9 @@ final class VariantConfigurationSynchronizer implements VariantConfigurationSync
         $this->generatorRegistry = $generatorRegistry;
     }
 
-    public function synchronize(bool $runSetup): VariantConfigurationSynchronizationResultInterface
+    public function synchronize(bool $runSetup = true): VariantConfigurationSynchronizationResultInterface
     {
         $syncResult = new VariantConfigurationSynchronizationResult();
-
-        $variantConfiguration = $this->variantConfigurationRepository->findNewest();
-        if (null !== $variantConfiguration) {
-            $variantCollection = $variantConfiguration->getVariantCollection();
-            Assert::notNull($variantCollection);
-
-            if ($variantCollection->equals($this->variantCollection)) {
-                $syncResult->addMessage('VariantCollection', 'Variant configuration has not changed. No synchronization performed');
-                // TODO: Should runSetup be possible even if the variant collections are the same?
-                return $syncResult;
-            }
-        }
 
         if ($runSetup) {
             $generators = array_unique(array_map(static fn (Variant $variant) => $variant->generator, $this->variantCollection->toArray()));
@@ -63,6 +51,18 @@ final class VariantConfigurationSynchronizer implements VariantConfigurationSync
                 $generator = $this->generatorRegistry->get($generatorName);
                 $setupResult = $generator->setup($this->variantCollection);
                 $syncResult->addSetupResult($setupResult);
+            }
+        }
+
+        $variantConfiguration = $this->variantConfigurationRepository->findNewest();
+        if (null !== $variantConfiguration) {
+            $variantCollection = $variantConfiguration->getVariantCollection();
+            Assert::notNull($variantCollection);
+
+            if ($variantCollection->equals($this->variantCollection)) {
+                $syncResult->addMessage('Variant configuration has not changed.');
+
+                return $syncResult;
             }
         }
 

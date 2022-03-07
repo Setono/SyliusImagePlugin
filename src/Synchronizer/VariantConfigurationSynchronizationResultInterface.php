@@ -8,9 +8,11 @@ use Setono\SyliusImagePlugin\VariantGenerator\SetupResultInterface;
 
 interface VariantConfigurationSynchronizationResultInterface
 {
-    /** @return array<string, string> */
+    /** @return list<string> */
     public function getMessages(): array;
 
-    /** @return array<string, SetupResultInterface> */
+    public function hasMessages(): bool;
+
+    /** @return list<SetupResultInterface> */
     public function getSetupResults(): array;
 }

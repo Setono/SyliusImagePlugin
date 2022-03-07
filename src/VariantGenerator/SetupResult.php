@@ -6,24 +6,29 @@ namespace Setono\SyliusImagePlugin\VariantGenerator;
 
 class SetupResult implements SetupResultInterface
 {
-    private string $generatorName;
-
-    /** @var array<string, string> */
+    /** @var list<string> */
     private array $messages = [];
 
-    public function __construct(string $generatorName)
+    private VariantGeneratorInterface $generator;
+
+    public function __construct(VariantGeneratorInterface $generator)
     {
-        $this->generatorName = $generatorName;
+        $this->generator = $generator;
     }
 
-    public function getGeneratorName(): string
+    public function getGenerator(): VariantGeneratorInterface
     {
-        return $this->generatorName;
+        return $this->generator;
     }
 
-    public function addMessage(string $variantName, string $message): void
+    public function addMessage(string $message): void
     {
-        $this->messages[$variantName] = $message;
+        $this->messages[] = $message;
+    }
+
+    public function hasMessages(): bool
+    {
+        return !empty($this->messages);
     }
 
     public function getMessages(): array

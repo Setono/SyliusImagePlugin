@@ -6,8 +6,10 @@ namespace Setono\SyliusImagePlugin\VariantGenerator;
 
 interface SetupResultInterface
 {
-    public function getGeneratorName(): string;
+    public function getGenerator(): VariantGeneratorInterface;
 
-    /** @return array<string, string> */
+    /** @return list<string> */
     public function getMessages(): array;
+
+    public function hasMessages(): bool;
 }

@@ -178,7 +178,7 @@ final class CloudflareVariantGenerator implements VariantGeneratorInterface
 
     public function setup(VariantCollectionInterface $variantCollection): SetupResultInterface
     {
-        $setupResult = new SetupResult($this->getName());
+        $setupResult = new SetupResult($this);
 
         // TODO: Add synchronization of changes to variant
         $this->ensureVariantsExists($variantCollection, $setupResult);
@@ -216,9 +216,9 @@ final class CloudflareVariantGenerator implements VariantGeneratorInterface
                     'width' => $item->width,
                     'height' => $item->height,
                 ]);
-                $setupResult->addMessage($item->name, 'variant created at Cloudflare');
+                $setupResult->addMessage(sprintf("Variant '%s' created at Cloudflare", $item->name));
             } else {
-                $setupResult->addMessage($item->name, 'UNABLE TO CREATE VARIANT ON CLOUDFLARE');
+                $setupResult->addMessage(sprintf("UNABLE TO CREATE VARIANT '%s' ON CLOUDFLARE", $item->name));
             }
         }
     }
