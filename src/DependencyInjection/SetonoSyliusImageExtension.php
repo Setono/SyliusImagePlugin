@@ -18,7 +18,7 @@ final class SetonoSyliusImageExtension extends AbstractResourceExtension impleme
         /**
          * @psalm-suppress PossiblyNullArgument
          *
-         * @var array{driver: string, listeners: array{enabled: bool, update_image: bool, remove_processed_images: bool}, resources: array<string, mixed>, public_processed_path: string, filter_sets: array} $config
+         * @var array{driver: string, listeners: array{enabled: bool, update_image: bool, remove_processed_images: bool, purge_liip_imagine_cache: bool}, resources: array<string, mixed>, public_processed_path: string, filter_sets: array} $config
          */
         $config = $this->processConfiguration($this->getConfiguration([], $container), $configs);
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
@@ -36,6 +36,10 @@ final class SetonoSyliusImageExtension extends AbstractResourceExtension impleme
 
         if (true === $config['listeners']['enabled'] && true === $config['listeners']['remove_processed_images']) {
             $loader->load('services/conditional/remove_processed_images_listener.xml');
+        }
+
+        if (true === $config['listeners']['enabled'] && true === $config['listeners']['purge_liip_imagine_cache']) {
+            $loader->load('services/conditional/purge_liip_imagine_cache_subscriber.xml');
         }
     }
 
