@@ -16,7 +16,12 @@
         <service id="setono_sylius_image.event_subscriber.cloudflare.check_variants_are_created"
                  class="Setono\SyliusImagePlugin\EventSubscriber\Cloudflare\CheckVariantsAreCreatedSubscriber">
             <argument type="service" id="setono_sylius_image.client.cloudflare"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
 
+        <service id="setono_sylius_image.event_subscriber.purge_liip_imagine_cache"
+                 class="Setono\SyliusImagePlugin\EventSubscriber\PurgeLiipImagineCacheSubscriber">
+            <argument type="service" id="liip_imagine.cache.manager"/>
             <tag name="kernel.event_subscriber"/>
         </service>
     </services>
