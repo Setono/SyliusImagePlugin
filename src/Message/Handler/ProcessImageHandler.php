@@ -8,6 +8,7 @@ use Doctrine\ORM\OptimisticLockException;
 use Doctrine\Persistence\ManagerRegistry;
 use Gaufrette\FilesystemInterface;
 use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
+use Setono\SyliusImagePlugin\Config\ImageResourceCollectionInterface;
 use Setono\SyliusImagePlugin\Config\Variant;
 use Setono\SyliusImagePlugin\Exception\ImageProcessingFailedException;
 use Setono\SyliusImagePlugin\File\ImageVariantFile;
@@ -36,10 +37,13 @@ final class ProcessImageHandler implements MessageHandlerInterface
 
     private FilesystemInterface $processedImagesFilesystem;
 
+    private ImageResourceCollectionInterface $imageResourceCollection;
+
     public function __construct(
         ManagerRegistry $managerRegistry,
         VariantGeneratorRegistryInterface $variantGeneratorRegistry,
         VariantConfigurationRepositoryInterface $variantConfigurationRepository,
+        ImageResourceCollectionInterface $imageResourceCollection,
         Registry $workflowRegistry,
         FilesystemInterface $uploadedImagesFilesystem,
         FilesystemInterface $processedImagesFilesystem
@@ -50,6 +54,7 @@ final class ProcessImageHandler implements MessageHandlerInterface
         $this->workflowRegistry = $workflowRegistry;
         $this->uploadedImagesFilesystem = $uploadedImagesFilesystem;
         $this->processedImagesFilesystem = $processedImagesFilesystem;
+        $this->imageResourceCollection = $imageResourceCollection;
     }
 
     public function __invoke(ProcessImage $message): void
@@ -106,9 +111,11 @@ final class ProcessImageHandler implements MessageHandlerInterface
         try {
             $imageFile = $this->uploadedImagesFilesystem->get((string) $image->getPath());
 
+            $imageResource = $this->imageResourceCollection->get($image);
+
             /** @var VariantGeneratorInterface $variantGenerator */
             foreach ($this->variantGeneratorRegistry as $variantGenerator) {
-                foreach ($variantGenerator->generate($image, $imageFile, $variantCollection) as $file) {
+                foreach ($variantGenerator->generate($image, $imageFile, $imageResource->variantCollection) as $file) {
                     $this->processedImagesFilesystem->write(sprintf(
                         '%s/%s',
                         $file->getVariant(),

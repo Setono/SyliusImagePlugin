@@ -27,6 +27,7 @@ final class SetonoSyliusImageExtensionTest extends AbstractExtensionTestCase
         $this->load();
 
         $this->assertContainerBuilderHasParameter('setono_sylius_image.public_processed_path', '/media/image/processed');
-        $this->assertContainerBuilderHasParameter('setono_sylius_image.filter_sets', []);
+        $this->assertContainerBuilderHasParameter('setono_sylius_image.available_variants', []);
+        $this->assertContainerBuilderHasParameter('setono_sylius_image.image_resources', []);
     }
 }

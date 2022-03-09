@@ -9,12 +9,13 @@ use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
+use Setono\SyliusImagePlugin\Config\ImageResource;
 use Setono\SyliusImagePlugin\Config\VariantCollectionInterface;
 use Setono\SyliusImagePlugin\Event\ProcessingStartedEvent;
 use Setono\SyliusImagePlugin\Message\Command\ProcessImage;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
 use Setono\SyliusImagePlugin\Model\VariantConfigurationInterface;
-use Setono\SyliusImagePlugin\Provider\ProcessableResourceProviderInterface;
+use Setono\SyliusImagePlugin\Provider\ProcessableImageResourceProviderInterface;
 use Setono\SyliusImagePlugin\Repository\VariantConfigurationRepositoryInterface;
 use Setono\SyliusImagePlugin\Synchronizer\VariantConfigurationSynchronizerInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
@@ -42,7 +43,7 @@ final class ProcessCommand extends Command
      */
     private SymfonyStyle $io;
 
-    private ProcessableResourceProviderInterface $processableResourceProvider;
+    private ProcessableImageResourceProviderInterface $processableImageResourceProvider;
 
     private MessageBusInterface $commandBus;
 
@@ -60,7 +61,7 @@ final class ProcessCommand extends Command
 
     public function __construct(
         ManagerRegistry $managerRegistry,
-        ProcessableResourceProviderInterface $processableResourceProvider,
+        ProcessableImageResourceProviderInterface $processableImageResourceProvider,
         MessageBusInterface $commandBus,
         VariantCollectionInterface $variantCollection,
         EventDispatcherInterface $eventDispatcher,
@@ -71,7 +72,7 @@ final class ProcessCommand extends Command
         parent::__construct();
 
         $this->managerRegistry = $managerRegistry;
-        $this->processableResourceProvider = $processableResourceProvider;
+        $this->processableImageResourceProvider = $processableImageResourceProvider;
         $this->commandBus = $commandBus;
         $this->variantCollection = $variantCollection;
         $this->eventDispatcher = $eventDispatcher;
@@ -113,9 +114,9 @@ EOF
 
         $syncConfiguration = true === $input->getOption(self::OPTION_SYNC_CONFIGURATION);
 
-        $processableResources = $this->processableResourceProvider->getResources();
+        $processableImageResources = $this->processableImageResourceProvider->getResources();
 
-        if ([] === $processableResources) {
+        if ([] === $processableImageResources) {
             $this->io->writeln(sprintf('No resources implements the interface %s', ImageInterface::class));
 
             return 0;
@@ -139,24 +140,21 @@ EOF
 
         $this->eventDispatcher->dispatch(new ProcessingStartedEvent($variantCollection));
 
-        foreach ($processableResources as $processableResource) {
+        foreach ($processableImageResources as $processableResource) {
             $this->processResource($processableResource, $variantConfiguration);
         }
 
         return 0;
     }
 
-    /**
-     * @param class-string $class
-     */
-    private function processResource(string $class, VariantConfigurationInterface $variantConfiguration): void
+    private function processResource(ImageResource $resource, VariantConfigurationInterface $variantConfiguration): void
     {
-        $this->io->section(sprintf('Processing resource: %s', $class));
+        $this->io->section(sprintf('Processing resource: %s', $resource->className));
 
-        $manager = $this->getManager($class);
+        $manager = $this->getManager($resource->className);
 
         /** @var ObjectRepository|EntityRepository $repository */
-        $repository = $manager->getRepository($class);
+        $repository = $manager->getRepository($resource->className);
         Assert::isInstanceOf($repository, EntityRepository::class);
 
         $i = 0;
