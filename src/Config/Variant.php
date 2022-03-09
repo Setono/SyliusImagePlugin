@@ -42,26 +42,36 @@ final class Variant
      */
     public const FIT_COVER = 'cover';
 
+    public const AVAILABLE_FITS = [
+        self::FIT_CROP,
+        self::FIT_SCALE_DOWN,
+        self::FIT_PAD,
+        self::FIT_CONTAIN,
+        self::FIT_COVER,
+    ];
+
     /**
      * The name of the variant. Right now it will be the name of the filter set
      */
     public string $name;
 
-    public int $width;
+    public ?int $width;
 
-    public int $height;
+    public ?int $height;
 
-    public string $fit;
+    public ?string $fit;
 
     /**
      * The name of the generator to use for this variant, i.e. 'cloudflare'
      */
     public string $generator;
 
-    public function __construct(string $name, string $generator, int $width, int $height, string $fit)
+    public function __construct(string $name, string $generator, ?int $width, ?int $height, ?string $fit)
     {
-        Assert::greaterThan($width, 0);
-        Assert::greaterThan($height, 0);
+        Assert::stringNotEmpty($name);
+        Assert::nullOrGreaterThan($width, 0);
+        Assert::nullOrGreaterThan($height, 0);
+        Assert::nullOrStringNotEmpty($fit);
 
         $this->name = $name;
         $this->generator = $generator;
@@ -72,11 +82,9 @@ final class Variant
 
     public static function fromFilterSet(string $name, string $generator, array $filterSet): self
     {
-        self::validateFilterSet($name, $filterSet);
+        $filters = $filterSet['filters'] ?? [];
 
-        $filters = $filterSet['filters'];
-
-        return new self($name, $generator, $filters['thumbnail']['size'][0], $filters['thumbnail']['size'][1], self::FIT_SCALE_DOWN);
+        return new self($name, $generator, $filters['thumbnail']['size'][0] ?? null, $filters['thumbnail']['size'][1] ?? null, self::FIT_SCALE_DOWN);
     }
 
     public function equals(self $other): bool

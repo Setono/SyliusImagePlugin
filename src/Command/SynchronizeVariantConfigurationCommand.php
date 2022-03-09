@@ -4,15 +4,19 @@ declare(strict_types=1);
 
 namespace Setono\SyliusImagePlugin\Command;
 
+use Setono\SyliusImagePlugin\Synchronizer\VariantConfigurationSynchronizationResultInterface;
 use Setono\SyliusImagePlugin\Synchronizer\VariantConfigurationSynchronizerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 final class SynchronizeVariantConfigurationCommand extends Command
 {
     protected static $defaultName = 'setono:sylius-image:sync-variant-configuration';
+
+    public const OPTION_SKIP_SETUP = 'skip-setup';
 
     /** @var string|null */
     protected static $defaultDescription = 'Will synchronize the application configuration into the database';
@@ -35,6 +39,8 @@ final class SynchronizeVariantConfigurationCommand extends Command
 
     protected function configure(): void
     {
+        $this->addOption(self::OPTION_SKIP_SETUP, null, InputOption::VALUE_NONE, 'Skip setup when synchronizing variant configuration');
+
         $this->setHelp(
             <<<'EOF'
 The <info>%command.name%</> command  will compare your plugin configuration with the newest database configuration and if there are changes a new
@@ -74,10 +80,29 @@ EOF
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->variantConfigurationSynchronizer->synchronize();
+        $skipSetup = true !== $input->getOption(self::OPTION_SKIP_SETUP);
 
-        $this->io->success('Variant configuration synchronized');
+        $synchronizeResult = $this->variantConfigurationSynchronizer->synchronize($skipSetup);
+
+        self::reportSynchronizationResult($synchronizeResult, $this->io);
 
         return 0;
+    }
+
+    public static function reportSynchronizationResult(VariantConfigurationSynchronizationResultInterface $synchronizeResult, SymfonyStyle $io): void
+    {
+        if ($synchronizeResult->hasMessages()) {
+            $io->writeln('Messages from synchronization');
+            $io->listing($synchronizeResult->getMessages());
+        }
+
+        foreach ($synchronizeResult->getSetupResults() as $setupResult) {
+            if ($setupResult->hasMessages()) {
+                $io->writeln(sprintf('Messages from \'%s\' generator setup', $setupResult->getGenerator()->getName()));
+                $io->listing($setupResult->getMessages());
+            } else {
+                $io->writeln(sprintf('Nothing to report from \'%s\'', $setupResult->getGenerator()->getName()));
+            }
+        }
     }
 }

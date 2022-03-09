@@ -14,9 +14,9 @@ use Setono\SyliusImagePlugin\Exception\ImageProcessingFailedException;
 use Setono\SyliusImagePlugin\File\ImageVariantFile;
 use Setono\SyliusImagePlugin\Message\Command\ProcessImage;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
+use Setono\SyliusImagePlugin\Registry\VariantGeneratorRegistryInterface;
 use Setono\SyliusImagePlugin\Repository\VariantConfigurationRepositoryInterface;
 use Setono\SyliusImagePlugin\VariantGenerator\VariantGeneratorInterface;
-use Setono\SyliusImagePlugin\VariantGenerator\VariantGeneratorRegistryInterface;
 use Setono\SyliusImagePlugin\Workflow\ProcessWorkflow;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
@@ -115,13 +115,7 @@ final class ProcessImageHandler implements MessageHandlerInterface
 
             /** @var VariantGeneratorInterface $variantGenerator */
             foreach ($this->variantGeneratorRegistry as $variantGenerator) {
-                $variants = $imageResource->variantCollection->getByGenerator($variantGenerator);
-
-                if (empty($variants)) {
-                    continue;
-                }
-
-                foreach ($variantGenerator->generate($image, $imageFile, $variants) as $file) {
+                foreach ($variantGenerator->generate($image, $imageFile, $imageResource->variantCollection) as $file) {
                     $this->processedImagesFilesystem->write(sprintf(
                         '%s/%s',
                         $file->getVariant(),

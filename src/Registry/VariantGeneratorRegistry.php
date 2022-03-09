@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Setono\SyliusImagePlugin\VariantGenerator;
+namespace Setono\SyliusImagePlugin\Registry;
+
+use Setono\SyliusImagePlugin\VariantGenerator\VariantGeneratorInterface;
 
 final class VariantGeneratorRegistry implements VariantGeneratorRegistryInterface, \IteratorAggregate
 {

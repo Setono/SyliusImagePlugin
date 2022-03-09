@@ -7,7 +7,9 @@ namespace Setono\SyliusImagePlugin\VariantGenerator;
 use Gaufrette\File;
 use Setono\SyliusImagePlugin\Client\Cloudflare\ClientInterface;
 use Setono\SyliusImagePlugin\Client\Cloudflare\Response\ImageVariant;
+use Setono\SyliusImagePlugin\Client\Cloudflare\Response\VariantResult;
 use Setono\SyliusImagePlugin\Config\Variant;
+use Setono\SyliusImagePlugin\Config\VariantCollectionInterface;
 use Setono\SyliusImagePlugin\File\ImageVariantFile;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
 use Symfony\Component\DependencyInjection\Container;
@@ -47,9 +49,11 @@ final class CloudflareVariantGenerator implements VariantGeneratorInterface
         return self::NAME;
     }
 
-    public function generate(ImageInterface $image, File $file, array $variants): iterable
+    public function generate(ImageInterface $image, File $file, VariantCollectionInterface $variantCollection): iterable
     {
         $tempDir = $this->getTempDir();
+
+        $variants = $variantCollection->getByGenerator($this);
 
         try {
             $filename = sprintf('%s/%s', $tempDir, self::pathToFilename((string) $image->getPath()));
@@ -170,5 +174,60 @@ final class CloudflareVariantGenerator implements VariantGeneratorInterface
         $this->filesystem->mkdir($dir);
 
         return $dir;
+    }
+
+    public function setup(VariantCollectionInterface $variantCollection): SetupResultInterface
+    {
+        $setupResult = new SetupResult($this);
+
+        // TODO: Add synchronization of changes to variant
+        $this->ensureVariantsExists($variantCollection, $setupResult);
+
+        return $setupResult;
+    }
+
+    private function ensureVariantsExists(VariantCollectionInterface $variantCollection, SetupResult $setupResult): void
+    {
+        $variants = $variantCollection->getByGenerator(self::NAME);
+
+        if (empty($variants)) {
+            return;
+        }
+
+        $existingVariants = array_map(static function (VariantResult $variantResult) {
+            return Container::underscore($variantResult->id); // variants in Cloudflare are saved as camel case
+        }, $this->client->getVariants()->result->variants);
+
+        /** @var array<array-key, Variant> $variantsToCreate */
+        $variantsToCreate = [];
+
+        foreach ($variants as $variant) {
+            if (in_array($variant->name, $existingVariants, true)) {
+                continue;
+            }
+
+            $variantsToCreate[] = $variant;
+        }
+
+        foreach ($variantsToCreate as $item) {
+            if (self::isVariantCreatable($item)) {
+                $this->client->createVariant($item->name, [
+                    'fit' => $item->fit,
+                    'width' => $item->width,
+                    'height' => $item->height,
+                ]);
+                $setupResult->addMessage(sprintf("Variant '%s' created at Cloudflare", $item->name));
+            } else {
+                $setupResult->addMessage(sprintf("UNABLE TO CREATE VARIANT '%s' ON CLOUDFLARE", $item->name));
+            }
+        }
+    }
+
+    private static function isVariantCreatable(Variant $variant): bool
+    {
+        return $variant->width !== null
+            && $variant->height !== null
+            && $variant->fit !== null
+            && in_array($variant->fit, Variant::AVAILABLE_FITS, true);
     }
 }
