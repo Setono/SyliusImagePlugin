@@ -48,7 +48,7 @@ Example
 <comment>Old configuration</comment>
 
 setono_sylius_image:
-    filter_sets:
+    available_variants:
         sylius_shop_product_tiny_thumbnail: ~
         sylius_shop_product_small_thumbnail: ~
         sylius_shop_product_thumbnail: ~
@@ -56,7 +56,7 @@ setono_sylius_image:
 <comment>New configuration</comment>
 
 setono_sylius_image:
-    filter_sets:
+    available_variants:
         sylius_shop_product_tiny_thumbnail: ~
         sylius_shop_product_small_thumbnail: ~
         sylius_shop_product_thumbnail: ~

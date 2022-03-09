@@ -8,17 +8,17 @@ use Setono\SyliusImagePlugin\Model\ImageInterface;
 
 /**
  * @template-covariant TKey
- * @extends \Traversable<TKey, ProcessableResource>
+ * @extends \Traversable<TKey, ImageResource>
  */
-interface ProcessableResourceCollectionInterface extends \Traversable
+interface ImageResourceCollectionInterface extends \Traversable
 {
     /**
-     * @param string|ImageInterface|ProcessableResource $resource
+     * @param string|ImageInterface|ImageResource $resource
      */
     public function has($resource): bool;
 
     /**
      * @param string|ImageInterface $resource
      */
-    public function get($resource): ProcessableResource;
+    public function get($resource): ImageResource;
 }

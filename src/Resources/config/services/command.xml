@@ -12,13 +12,12 @@
         <service id="setono_sylius_image.command.process"
                  class="Setono\SyliusImagePlugin\Command\ProcessCommand">
             <argument type="service" id="doctrine"/>
-            <argument type="service" id="setono_sylius_image.provider.processable_resource"/>
+            <argument type="service" id="setono_sylius_image.provider.processable_image_resource"/>
             <argument type="service" id="setono_sylius_image.command_bus"/>
             <argument type="service" id="setono_sylius_image.config.variant_collection"/>
             <argument type="service" id="event_dispatcher"/>
             <argument type="service" id="setono_sylius_image.repository.variant_configuration"/>
             <argument type="service" id="setono_sylius_image.synchronizer.variant_configuration"/>
-            <argument type="service" id="setono_sylius_image.config.processable_resource_collection"/>
 
             <tag name="console.command"/>
         </service>
@@ -33,7 +32,7 @@
         <service id="setono_sylius_image.command.timeout"
                  class="Setono\SyliusImagePlugin\Command\TimeoutCommand">
             <argument type="service" id="doctrine"/>
-            <argument type="service" id="setono_sylius_image.provider.processable_resource"/>
+            <argument type="service" id="setono_sylius_image.provider.processable_image_resource"/>
             <argument type="service" id="workflow.registry"/>
             <argument>%setono_sylius_image.timeout_threshold%</argument>
 

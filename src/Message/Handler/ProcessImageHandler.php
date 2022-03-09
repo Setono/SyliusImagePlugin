@@ -8,7 +8,7 @@ use Doctrine\ORM\OptimisticLockException;
 use Doctrine\Persistence\ManagerRegistry;
 use Gaufrette\FilesystemInterface;
 use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
-use Setono\SyliusImagePlugin\Config\ProcessableResourceCollectionInterface;
+use Setono\SyliusImagePlugin\Config\ImageResourceCollectionInterface;
 use Setono\SyliusImagePlugin\Config\Variant;
 use Setono\SyliusImagePlugin\Exception\ImageProcessingFailedException;
 use Setono\SyliusImagePlugin\File\ImageVariantFile;
@@ -37,13 +37,13 @@ final class ProcessImageHandler implements MessageHandlerInterface
 
     private FilesystemInterface $processedImagesFilesystem;
 
-    private ProcessableResourceCollectionInterface $processableResourceCollection;
+    private ImageResourceCollectionInterface $imageResourceCollection;
 
     public function __construct(
         ManagerRegistry $managerRegistry,
         VariantGeneratorRegistryInterface $variantGeneratorRegistry,
         VariantConfigurationRepositoryInterface $variantConfigurationRepository,
-        ProcessableResourceCollectionInterface $processableResourceCollection,
+        ImageResourceCollectionInterface $imageResourceCollection,
         Registry $workflowRegistry,
         FilesystemInterface $uploadedImagesFilesystem,
         FilesystemInterface $processedImagesFilesystem
@@ -54,7 +54,7 @@ final class ProcessImageHandler implements MessageHandlerInterface
         $this->workflowRegistry = $workflowRegistry;
         $this->uploadedImagesFilesystem = $uploadedImagesFilesystem;
         $this->processedImagesFilesystem = $processedImagesFilesystem;
-        $this->processableResourceCollection = $processableResourceCollection;
+        $this->imageResourceCollection = $imageResourceCollection;
     }
 
     public function __invoke(ProcessImage $message): void
@@ -111,11 +111,15 @@ final class ProcessImageHandler implements MessageHandlerInterface
         try {
             $imageFile = $this->uploadedImagesFilesystem->get((string) $image->getPath());
 
-            $processableResource = $this->processableResourceCollection->get($image);
+            $imageResource = $this->imageResourceCollection->get($image);
 
             /** @var VariantGeneratorInterface $variantGenerator */
             foreach ($this->variantGeneratorRegistry as $variantGenerator) {
-                $variants = $processableResource->getVariantCollection()->getByGenerator($variantGenerator);
+                $variants = $imageResource->variantCollection->getByGenerator($variantGenerator);
+
+                if (empty($variants)) {
+                    continue;
+                }
 
                 foreach ($variantGenerator->generate($image, $imageFile, $variants) as $file) {
                     $this->processedImagesFilesystem->write(sprintf(

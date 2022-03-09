@@ -10,19 +10,19 @@
         <service id="setono_sylius_image.config.variant_collection"
                  class="Setono\SyliusImagePlugin\Config\VariantCollection">
             <factory service="setono_sylius_image.config.variant_collection_factory" method="createFromConfiguration"/>
-            <argument>%setono_sylius_image.filter_sets%</argument>
+            <argument>%setono_sylius_image.available_variants%</argument>
         </service>
 
-        <service id="setono_sylius_image.config.processable_resource_collection_factory"
-                 class="Setono\SyliusImagePlugin\Config\ProcessableResourceCollectionFactory">
+        <service id="setono_sylius_image.config.image_resource_collection_factory"
+                 class="Setono\SyliusImagePlugin\Config\ImageResourceCollectionFactory">
             <argument type="service" id="setono_sylius_image.config.variant_collection"/>
             <argument>%sylius.resources%</argument>
         </service>
 
-        <service id="setono_sylius_image.config.processable_resource_collection"
-                 class="Setono\SyliusImagePlugin\Config\ProcessableResourceCollection">
-            <factory service="setono_sylius_image.config.processable_resource_collection_factory" method="createFromConfiguration"/>
-            <argument>%setono_sylius_image.processable_resources%</argument>
+        <service id="setono_sylius_image.config.image_resource_collection"
+                 class="Setono\SyliusImagePlugin\Config\ImageResourceCollection">
+            <factory service="setono_sylius_image.config.image_resource_collection_factory" method="createFromConfiguration"/>
+            <argument>%setono_sylius_image.image_resources%</argument>
         </service>
     </services>
 </container>

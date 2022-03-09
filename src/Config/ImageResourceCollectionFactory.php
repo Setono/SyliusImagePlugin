@@ -7,7 +7,7 @@ namespace Setono\SyliusImagePlugin\Config;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
 use Webmozart\Assert\Assert;
 
-final class ProcessableResourceCollectionFactory
+final class ImageResourceCollectionFactory
 {
     private VariantCollectionInterface $variantCollection;
 
@@ -20,11 +20,11 @@ final class ProcessableResourceCollectionFactory
     }
 
     /**
-     * @param array<string, array{variants: array<array-key, string>}> $configurationValue
+     * @param array<string, array{variants: list<string>}> $configurationValue
      */
-    public function createFromConfiguration(array $configurationValue): ProcessableResourceCollectionInterface
+    public function createFromConfiguration(array $configurationValue): ImageResourceCollectionInterface
     {
-        $resourceCollection = new ProcessableResourceCollection();
+        $resourceCollection = new ImageResourceCollection();
 
         if (empty($configurationValue)) {
             $allVariants = array_keys($this->variantCollection->toArray());
@@ -65,7 +65,7 @@ final class ProcessableResourceCollectionFactory
             }
 
             Assert::string($model);
-            $resourceCollection->add(new ProcessableResource($resourceName, $model, $variantCollection));
+            $resourceCollection->add(new ImageResource($resourceName, $model, $variantCollection));
         }
 
         return $resourceCollection;

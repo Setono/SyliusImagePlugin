@@ -18,14 +18,14 @@ final class SetonoSyliusImageExtension extends AbstractResourceExtension impleme
         /**
          * @psalm-suppress PossiblyNullArgument
          *
-         * @var array{driver: string, listeners: array{enabled: bool, update_image: bool, remove_processed_images: bool, purge_liip_imagine_cache: bool}, resources: array<string, mixed>, public_processed_path: string, filter_sets: array, processable_resources: array<string, array{resource: string, variants: array<array-key, string>}>} $config
+         * @var array{driver: string, listeners: array{enabled: bool, update_image: bool, remove_processed_images: bool, purge_liip_imagine_cache: bool}, resources: array<string, mixed>, public_processed_path: string, available_variants: array, image_resources: array<string, array{resource: string, variants: list<string>}>} $config
          */
         $config = $this->processConfiguration($this->getConfiguration([], $container), $configs);
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
 
         $container->setParameter('setono_sylius_image.public_processed_path', rtrim($config['public_processed_path'], '/'));
-        $container->setParameter('setono_sylius_image.filter_sets', $config['filter_sets']);
-        $container->setParameter('setono_sylius_image.processable_resources', $config['processable_resources']);
+        $container->setParameter('setono_sylius_image.available_variants', $config['available_variants']);
+        $container->setParameter('setono_sylius_image.image_resources', $config['image_resources']);
 
         $this->registerResources('setono_sylius_image', $config['driver'], $config['resources'], $container);
 
