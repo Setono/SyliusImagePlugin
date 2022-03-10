@@ -9,6 +9,8 @@ use Sylius\Component\Core\Model\ImageInterface as BaseImageInterface;
 
 interface ImageInterface extends BaseImageInterface
 {
+    public const PROCESSING_STATE_INITIAL = 'initial';
+
     public const PROCESSING_STATE_PENDING = 'pending';
 
     public const PROCESSING_STATE_PROCESSING = 'processing';

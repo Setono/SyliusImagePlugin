@@ -31,6 +31,7 @@ final class ProcessWorkflow
     public static function getStates(): array
     {
         return [
+            ImageInterface::PROCESSING_STATE_INITIAL,
             ImageInterface::PROCESSING_STATE_PENDING,
             ImageInterface::PROCESSING_STATE_PROCESSING,
             ImageInterface::PROCESSING_STATE_PROCESSED,
@@ -56,7 +57,7 @@ final class ProcessWorkflow
                     'property' => 'processingState',
                 ],
                 'supports' => ImageInterface::class,
-                'initial_marking' => ImageInterface::PROCESSING_STATE_PENDING,
+                'initial_marking' => ImageInterface::PROCESSING_STATE_INITIAL,
                 'places' => self::getStates(),
                 'transitions' => $transitions,
             ],

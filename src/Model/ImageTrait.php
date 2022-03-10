@@ -15,8 +15,8 @@ trait ImageTrait
      */
     protected int $version = 1;
 
-    /** @ORM\Column(type="string", options={"default": ImageInterface::PROCESSING_STATE_PENDING}) */
-    protected string $processingState = ImageInterface::PROCESSING_STATE_PENDING;
+    /** @ORM\Column(type="string", options={"default": ImageInterface::PROCESSING_STATE_INITIAL}) */
+    protected string $processingState = ImageInterface::PROCESSING_STATE_INITIAL;
 
     /** @ORM\Column(type="datetime", nullable=true) */
     protected ?DateTimeInterface $processingStateUpdatedAt = null;
