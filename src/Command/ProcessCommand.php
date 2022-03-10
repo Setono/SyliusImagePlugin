@@ -87,16 +87,15 @@ final class ProcessCommand extends Command
         $this->addOption(SynchronizeVariantConfigurationCommand::OPTION_SKIP_SETUP, null, InputOption::VALUE_NONE, sprintf('Skip setup - only applicable if \'--%s\' flag is set', self::OPTION_SYNC_CONFIGURATION));
 
         $this->setHelp(sprintf(<<<'EOF'
-The <info>%command.name%</> command fetches the newest configuration from the database and processes all images that
-doesn't have the newest configuration.
+The <info>%%command.name%%</> command fetches the newest configuration from the database and processes all images that
+don't have the newest configuration.
 
 You can automatically sync your plugin configuration with the database by using the <comment>--%1$s</comment> flag:
 
-  <info>php %command.full_name% --%1$s</>
+  <info>php %%command.full_name%% --%1$s</>
 
-This flag will do the exact same as the <info>%s</> command.
-EOF
-            , self::OPTION_SYNC_CONFIGURATION, SynchronizeVariantConfigurationCommand::getDefaultName() ?? 'sync-variant-configuration'));
+This flag will do the exact same as the <info>%2$s</> command.
+EOF, self::OPTION_SYNC_CONFIGURATION, SynchronizeVariantConfigurationCommand::getDefaultName() ?? 'sync-variant-configuration'));
     }
 
     protected function initialize(InputInterface $input, OutputInterface $output): void
