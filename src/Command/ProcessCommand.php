@@ -235,7 +235,7 @@ EOF, self::OPTION_SYNC_CONFIGURATION, SynchronizeVariantConfigurationCommand::ge
             ->setParameter('variantConfiguration', $variantConfiguration)
             ->setParameter('now', $now)
             ->setParameter('maximumNumberOfTries', $this->maximumNumberOfTries)
-            ->setParameter('processingStates', [ImageInterface::PROCESSING_STATE_PENDING, ImageInterface::PROCESSING_STATE_FAILED])
+            ->setParameter('processingStates', [ImageInterface::PROCESSING_STATE_INITIAL, ImageInterface::PROCESSING_STATE_FAILED, ImageInterface::PROCESSING_STATE_PROCESSED])
         ;
 
         do {
