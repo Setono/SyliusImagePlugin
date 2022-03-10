@@ -15,6 +15,8 @@ final class ProcessWorkflow
 {
     public const NAME = 'setono_sylius_image__process';
 
+    public const TRANSITION_ENQUEUE = 'enqueue';
+
     public const TRANSITION_START = 'process';
 
     public const TRANSITION_FINISH = 'finish';
@@ -82,9 +84,10 @@ final class ProcessWorkflow
     public static function getTransitions(): array
     {
         return [
-            new Transition(self::TRANSITION_START, [ImageInterface::PROCESSING_STATE_PENDING, ImageInterface::PROCESSING_STATE_FAILED], ImageInterface::PROCESSING_STATE_PROCESSING),
+            new Transition(self::TRANSITION_ENQUEUE, [ImageInterface::PROCESSING_STATE_INITIAL, ImageInterface::PROCESSING_STATE_FAILED, ImageInterface::PROCESSING_STATE_PROCESSED], ImageInterface::PROCESSING_STATE_PENDING),
+            new Transition(self::TRANSITION_START, ImageInterface::PROCESSING_STATE_PENDING, ImageInterface::PROCESSING_STATE_PROCESSING),
             new Transition(self::TRANSITION_FINISH, ImageInterface::PROCESSING_STATE_PROCESSING, ImageInterface::PROCESSING_STATE_PROCESSED),
-            new Transition(self::TRANSITION_FAIL, ImageInterface::PROCESSING_STATE_PROCESSING, ImageInterface::PROCESSING_STATE_FAILED),
+            new Transition(self::TRANSITION_FAIL, [ImageInterface::PROCESSING_STATE_PENDING, ImageInterface::PROCESSING_STATE_PROCESSING], ImageInterface::PROCESSING_STATE_FAILED),
         ];
     }
 }
