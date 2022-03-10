@@ -66,6 +66,11 @@ trait ImageTrait
         $this->processingTries += $increment;
     }
 
+    public function resetProcessingTries(): void
+    {
+        $this->processingTries = 0;
+    }
+
     public function getProcessingRetryAt(): ?DateTimeInterface
     {
         return $this->processingRetryAt;
