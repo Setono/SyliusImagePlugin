@@ -136,9 +136,9 @@ final class TimeoutCommand extends Command
 
         $qb = $repository->createQueryBuilder('o');
         $qb
-            ->andWhere('o.processingState = :processingState')
+            ->andWhere('o.processingState IN (:processingStates)')
             ->andWhere('o.processingStateUpdatedAt <= :threshold')
-            ->setParameter('processingState', [ImageInterface::PROCESSING_STATE_PROCESSING])
+            ->setParameter('processingStates', [ImageInterface::PROCESSING_STATE_PENDING, ImageInterface::PROCESSING_STATE_PROCESSING])
             ->setParameter('threshold', new \DateTimeImmutable(sprintf('-%d min', $this->timeoutThreshold)))
             ->setMaxResults($maxResults)
         ;
