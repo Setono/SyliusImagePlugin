@@ -29,7 +29,13 @@ final class ImageResourceCollection implements ImageResourceCollectionInterface,
             return array_key_exists($resource->resourceKey, $this->resources) ? $resource->resourceKey : null;
         }
 
-        return array_key_exists($resource, $this->resources) ? $resource : null;
+        foreach ($this->resources as $imageResource) {
+            if ($imageResource->resourceKey === $resource || $imageResource->className === $resource) {
+                return $imageResource->resourceKey;
+            }
+        }
+
+        return null;
     }
 
     public function add(ImageResource $imageResource): void
