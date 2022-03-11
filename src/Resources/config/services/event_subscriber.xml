@@ -11,5 +11,10 @@
                  class="Setono\SyliusImagePlugin\EventSubscriber\UpdateRetryAtSubscriber">
             <tag name="kernel.event_subscriber"/>
         </service>
+
+        <service id="setono_sylius_image.event_subscriber.reset_processing_retry_status"
+                 class="Setono\SyliusImagePlugin\EventSubscriber\ResetProcessingRetryStatusSubscriber">
+            <tag name="kernel.event_subscriber"/>
+        </service>
     </services>
 </container>

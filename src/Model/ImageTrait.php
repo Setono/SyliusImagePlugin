@@ -15,8 +15,8 @@ trait ImageTrait
      */
     protected int $version = 1;
 
-    /** @ORM\Column(type="string", options={"default": ImageInterface::PROCESSING_STATE_PENDING}) */
-    protected string $processingState = ImageInterface::PROCESSING_STATE_PENDING;
+    /** @ORM\Column(type="string", options={"default": ImageInterface::PROCESSING_STATE_INITIAL}) */
+    protected string $processingState = ImageInterface::PROCESSING_STATE_INITIAL;
 
     /** @ORM\Column(type="datetime", nullable=true) */
     protected ?DateTimeInterface $processingStateUpdatedAt = null;
@@ -64,6 +64,11 @@ trait ImageTrait
     public function incrementProcessingTries(int $increment = 1): void
     {
         $this->processingTries += $increment;
+    }
+
+    public function resetProcessingTries(): void
+    {
+        $this->processingTries = 0;
     }
 
     public function getProcessingRetryAt(): ?DateTimeInterface
