@@ -20,6 +20,7 @@ use Setono\SyliusImagePlugin\Repository\VariantConfigurationRepositoryInterface;
 use Setono\SyliusImagePlugin\Synchronizer\VariantConfigurationSynchronizerInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -57,7 +58,16 @@ final class ProcessCommand extends Command
 
     private int $maximumNumberOfTries;
 
+    /** @var ImageResource[] */
+    private array $processableImageResources = [];
+
+    private ?int $limitPerResource = null;
+
     public const OPTION_SYNC_CONFIGURATION = 'sync-configuration';
+
+    public const OPTION_LIMIT = 'limit';
+
+    public const ARGUMENT_RESOURCES = 'resources';
 
     public function __construct(
         ManagerRegistry $managerRegistry,
@@ -85,6 +95,9 @@ final class ProcessCommand extends Command
     {
         $this->addOption(self::OPTION_SYNC_CONFIGURATION, null, InputOption::VALUE_NONE, 'Sync plugin configuration with database');
         $this->addOption(SynchronizeVariantConfigurationCommand::OPTION_SKIP_SETUP, null, InputOption::VALUE_NONE, sprintf('Skip setup - only applicable if \'--%s\' flag is set', self::OPTION_SYNC_CONFIGURATION));
+        $this->addOption(self::OPTION_LIMIT, 'l', InputOption::VALUE_REQUIRED, 'Limit for how many images to process per resource. Default: unlimited');
+
+        $this->addArgument(self::ARGUMENT_RESOURCES, InputArgument::IS_ARRAY, 'Specify one or more resources to process. Ex: \'sylius.product_image sylius.taxon_image\'. If nothing is specified all available image resources are processed.');
 
         $this->setHelp(sprintf(<<<'EOF'
 The <info>%%command.name%%</> command fetches the newest configuration from the database and processes all images that
@@ -101,6 +114,37 @@ EOF, self::OPTION_SYNC_CONFIGURATION, SynchronizeVariantConfigurationCommand::ge
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         $this->io = new SymfonyStyle($input, $output);
+
+        $limitPerResource = $input->getOption(self::OPTION_LIMIT);
+        Assert::nullOrIntegerish($limitPerResource);
+        if ($limitPerResource !== null) {
+            $limit = (int) $limitPerResource;
+            Assert::greaterThanEq($limit, 0, 'The limit can\'t be negative');
+            $this->limitPerResource = $limit;
+            if ($limit === 0) {
+                $this->io->warning('Limit=0 means no images will be processed');
+            }
+        }
+
+        $availableResources = [];
+        foreach ($this->processableImageResourceProvider->getResources() as $imageResource) {
+            $availableResources[$imageResource->resourceKey] = $imageResource;
+        }
+
+        /** @var string[]|object $chosenResources */
+        $chosenResources = $input->getArgument(self::ARGUMENT_RESOURCES);
+
+        if (!is_array($chosenResources) || empty($chosenResources)) {
+            $this->processableImageResources = $availableResources;
+        } else {
+            foreach ($chosenResources as $resourceKey) {
+                if (isset($availableResources[$resourceKey])) {
+                    $this->processableImageResources[$resourceKey] = $availableResources[$resourceKey];
+                } else {
+                    $this->io->warning(sprintf('The requested resource \'%s\' is not available', $resourceKey));
+                }
+            }
+        }
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -113,10 +157,8 @@ EOF, self::OPTION_SYNC_CONFIGURATION, SynchronizeVariantConfigurationCommand::ge
 
         $syncConfiguration = true === $input->getOption(self::OPTION_SYNC_CONFIGURATION);
 
-        $processableImageResources = $this->processableImageResourceProvider->getResources();
-
-        if ([] === $processableImageResources) {
-            $this->io->writeln(sprintf('No resources implements the interface %s', ImageInterface::class));
+        if ([] === $this->processableImageResources) {
+            $this->io->writeln('No resources selected/available for processing');
 
             return 0;
         }
@@ -139,7 +181,7 @@ EOF, self::OPTION_SYNC_CONFIGURATION, SynchronizeVariantConfigurationCommand::ge
 
         $this->eventDispatcher->dispatch(new ProcessingStartedEvent($variantCollection));
 
-        foreach ($processableImageResources as $processableResource) {
+        foreach ($this->processableImageResources as $processableResource) {
             $this->processResource($processableResource, $variantConfiguration);
         }
 
@@ -194,10 +236,15 @@ EOF, self::OPTION_SYNC_CONFIGURATION, SynchronizeVariantConfigurationCommand::ge
             ->setParameter('now', $now)
             ->setParameter('maximumNumberOfTries', $this->maximumNumberOfTries)
             ->setParameter('processingStates', [ImageInterface::PROCESSING_STATE_PENDING, ImageInterface::PROCESSING_STATE_FAILED])
-            ->setMaxResults($maxResults)
         ;
 
         do {
+            if ($this->limitPerResource !== null) {
+                $remaining = $this->limitPerResource - $firstResult;
+                $maxResults = min($maxResults, $remaining);
+            }
+
+            $qb->setMaxResults($maxResults);
             $qb->setFirstResult($firstResult);
 
             $images = $qb->getQuery()->getResult();
@@ -211,6 +258,6 @@ EOF, self::OPTION_SYNC_CONFIGURATION, SynchronizeVariantConfigurationCommand::ge
             $firstResult += $maxResults;
 
             $manager->clear();
-        } while ([] !== $images);
+        } while ([] !== $images && ($this->limitPerResource === null || $firstResult < $this->limitPerResource));
     }
 }
