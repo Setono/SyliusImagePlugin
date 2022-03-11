@@ -11,7 +11,9 @@ framework:
                     Authorization: 'Bearer %env(CLOUDFLARE_API_TOKEN)%'
     messenger:
         buses:
-            setono_sylius_image.command_bus: ~
+            setono_sylius_image.command_bus:
+                middleware:
+                    - 'setono_sylius_image.messenger.middleware.image_state'
 
 knp_gaufrette:
     adapters:
