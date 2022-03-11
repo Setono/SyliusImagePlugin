@@ -8,6 +8,7 @@
         <import resource="services/controller.xml"/>
         <import resource="services/event_subscriber.xml"/>
         <import resource="services/message.xml"/>
+        <import resource="services/middleware.xml"/>
         <import resource="services/provider.xml"/>
         <import resource="services/registry.xml" />
         <import resource="services/synchronizer.xml"/>
