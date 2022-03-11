@@ -16,7 +16,7 @@ use Symfony\Component\Messenger\Middleware\StackInterface;
 use Symfony\Component\Workflow\Registry;
 use Webmozart\Assert\Assert;
 
-final class ImageStateMiddleware implements MiddlewareInterface
+final class EnsurePendingProcessingStateMiddleware implements MiddlewareInterface
 {
     use ORMManagerTrait;
 
@@ -32,11 +32,11 @@ final class ImageStateMiddleware implements MiddlewareInterface
     {
         $message = $envelope->getMessage();
 
-        // If the message already has an ImageStatePreparedStamp we don't need to prepare/check the image
+        // If the message already has an PendingProcessingStateEnsuredStamp we don't need to prepare/check the image
         // This is the case when the message is received by the handler.
-        // Dispatch happens both when sending and receiving message.
+        // Middleware handles the message both when sending and receiving.
         // See https://symfony.com/doc/current/messenger.html#middleware
-        if (($message instanceof ProcessImage) && null === $envelope->last(ImageStatePreparedStamp::class)) {
+        if ($message instanceof ProcessImage && null === $envelope->last(PendingProcessingStateEnsuredStamp::class)) {
             $manager = $this->getManager($message->class);
 
             $image = $manager->find($message->class, $message->imageId);
@@ -63,7 +63,7 @@ final class ImageStateMiddleware implements MiddlewareInterface
                 return $envelope;
             }
 
-            $envelope = $envelope->with(new ImageStatePreparedStamp());
+            $envelope = $envelope->with(new PendingProcessingStateEnsuredStamp());
         }
 
         return $stack->next()->handle($envelope, $stack);

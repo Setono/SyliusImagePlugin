@@ -13,7 +13,7 @@ framework:
         buses:
             setono_sylius_image.command_bus:
                 middleware:
-                    - 'setono_sylius_image.messenger.middleware.image_state'
+                    - 'setono_sylius_image.messenger.middleware.ensure_pending_processing_state'
 
 knp_gaufrette:
     adapters:
