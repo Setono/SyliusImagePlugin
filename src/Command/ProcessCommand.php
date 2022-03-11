@@ -20,6 +20,7 @@ use Setono\SyliusImagePlugin\Repository\VariantConfigurationRepositoryInterface;
 use Setono\SyliusImagePlugin\Synchronizer\VariantConfigurationSynchronizerInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Command\LockableTrait;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -30,6 +31,8 @@ use Webmozart\Assert\Assert;
 
 final class ProcessCommand extends Command
 {
+    use LockableTrait;
+
     use ORMManagerTrait;
 
     protected static $defaultName = 'setono:sylius-image:process';
@@ -149,43 +152,53 @@ EOF, self::OPTION_SYNC_CONFIGURATION, SynchronizeVariantConfigurationCommand::ge
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        if ($this->variantCollection->isEmpty()) {
-            $this->io->writeln('No variants configured');
+        if (!$this->lock()) {
+            $output->writeln('The command is already running in another process.');
 
             return 0;
         }
 
-        $syncConfiguration = true === $input->getOption(self::OPTION_SYNC_CONFIGURATION);
+        try {
+            if ($this->variantCollection->isEmpty()) {
+                $this->io->writeln('No variants configured');
 
-        if ([] === $this->processableImageResources) {
-            $this->io->writeln('No resources selected/available for processing');
+                return 0;
+            }
+
+            $syncConfiguration = true === $input->getOption(self::OPTION_SYNC_CONFIGURATION);
+
+            if ([] === $this->processableImageResources) {
+                $this->io->writeln('No resources selected/available for processing');
+
+                return 0;
+            }
+
+            if ($syncConfiguration) {
+                $runSetup = true !== $input->getOption(SynchronizeVariantConfigurationCommand::OPTION_SKIP_SETUP);
+                $synchronizationResult = $this->variantConfigurationSynchronizer->synchronize($runSetup);
+                SynchronizeVariantConfigurationCommand::reportSynchronizationResult($synchronizationResult, $this->io);
+            }
+
+            $variantConfiguration = $this->variantConfigurationRepository->findNewest();
+            if (null === $variantConfiguration) {
+                $this->io->writeln('No variant configuration saved in the database. Run with --sync-configuration instead.');
+
+                return 0;
+            }
+
+            $variantCollection = $variantConfiguration->getVariantCollection();
+            Assert::notNull($variantCollection);
+
+            $this->eventDispatcher->dispatch(new ProcessingStartedEvent($variantCollection));
+
+            foreach ($this->processableImageResources as $processableResource) {
+                $this->processResource($processableResource, $variantConfiguration);
+            }
 
             return 0;
+        } finally {
+            $this->release();
         }
-
-        if ($syncConfiguration) {
-            $runSetup = true !== $input->getOption(SynchronizeVariantConfigurationCommand::OPTION_SKIP_SETUP);
-            $synchronizationResult = $this->variantConfigurationSynchronizer->synchronize($runSetup);
-            SynchronizeVariantConfigurationCommand::reportSynchronizationResult($synchronizationResult, $this->io);
-        }
-
-        $variantConfiguration = $this->variantConfigurationRepository->findNewest();
-        if (null === $variantConfiguration) {
-            $this->io->writeln('No variant configuration saved in the database. Run with --sync-configuration instead.');
-
-            return 0;
-        }
-
-        $variantCollection = $variantConfiguration->getVariantCollection();
-        Assert::notNull($variantCollection);
-
-        $this->eventDispatcher->dispatch(new ProcessingStartedEvent($variantCollection));
-
-        foreach ($this->processableImageResources as $processableResource) {
-            $this->processResource($processableResource, $variantConfiguration);
-        }
-
-        return 0;
     }
 
     private function processResource(ImageResource $resource, VariantConfigurationInterface $variantConfiguration): void
