@@ -22,7 +22,7 @@
                 </service>
             </argument>
 
-            <tag name="messenger.message_handler"/>
+            <tag name="messenger.message_handler" bus="setono_sylius_image.command_bus" />
         </service>
     </services>
 </container>
