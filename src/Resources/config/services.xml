@@ -11,6 +11,7 @@
         <import resource="services/middleware.xml"/>
         <import resource="services/provider.xml"/>
         <import resource="services/registry.xml" />
+        <import resource="services/resolver.xml" />
         <import resource="services/synchronizer.xml"/>
         <import resource="services/twig.xml"/>
         <import resource="services/variant_generator.xml"/>
