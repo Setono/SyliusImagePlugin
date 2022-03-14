@@ -4,64 +4,28 @@ declare(strict_types=1);
 
 namespace Setono\SyliusImagePlugin\Twig;
 
-use Gaufrette\FilesystemInterface;
 use Liip\ImagineBundle\Templating\FilterExtension;
-use Setono\SyliusImagePlugin\File\ImageVariantFile;
-use Symfony\Component\HttpFoundation\RequestStack;
+use Setono\SyliusImagePlugin\Resolver\ProcessedVariantPathResolverInterface;
 use Twig\Extension\RuntimeExtensionInterface;
 
 final class Runtime implements RuntimeExtensionInterface
 {
-    private FilesystemInterface $filesystem;
+    private ProcessedVariantPathResolverInterface $processedVariantPathResolver;
 
     private FilterExtension $filterExtension;
 
-    private string $publicProcessedPath;
-
-    private RequestStack $requestStack;
-
     public function __construct(
-        FilesystemInterface $filesystem,
-        FilterExtension $filterExtension,
-        RequestStack $requestStack,
-        string $publicProcessedPath
+        ProcessedVariantPathResolverInterface $processedVariantPathResolver,
+        FilterExtension $filterExtension
     ) {
-        $this->filesystem = $filesystem;
         $this->filterExtension = $filterExtension;
-        $this->requestStack = $requestStack;
-        $this->publicProcessedPath = $publicProcessedPath;
+        $this->processedVariantPathResolver = $processedVariantPathResolver;
     }
 
     public function imagePath(string $relativePath, string $variant): string // todo return value object instead?
     {
-        $candidates = [];
+        $processedVariantPath = $this->processedVariantPathResolver->getPublicVariantPath($relativePath, $variant);
 
-        $request = $this->requestStack->getMasterRequest();
-        if (null !== $request) {
-            $acceptHeaders = $request->headers->get('Accept');
-            if (null !== $acceptHeaders) {
-                if (strpos($acceptHeaders, 'image/avif') !== false) {
-                    $candidates[] = 'avif';
-                }
-
-                if (strpos($acceptHeaders, 'image/webp') !== false) {
-                    $candidates[] = 'webp';
-                }
-            }
-        }
-
-        // first check optimized image candidates
-        foreach ($candidates as $candidate) {
-            $tmpRelativePath = ImageVariantFile::replaceExtension($relativePath, $candidate);
-            if ($this->filesystem->has(sprintf('%s/%s', $variant, $tmpRelativePath))) {
-                return sprintf('%s/%s/%s', $this->publicProcessedPath, $variant, $tmpRelativePath);
-            }
-        }
-
-        if ($this->filesystem->has(sprintf('%s/%s', $variant, $relativePath))) {
-            return sprintf('%s/%s/%s', $this->publicProcessedPath, $variant, $relativePath);
-        }
-
-        return $this->filterExtension->filter($relativePath, $variant); // todo add other arguments
+        return $processedVariantPath ?? $this->filterExtension->filter($relativePath, $variant); // todo add other arguments
     }
 }
