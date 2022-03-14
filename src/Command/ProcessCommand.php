@@ -66,9 +66,13 @@ final class ProcessCommand extends Command
 
     private ?int $limitPerResource = null;
 
+    private ?int $maxPendingImages = null;
+
     public const OPTION_SYNC_CONFIGURATION = 'sync-configuration';
 
     public const OPTION_LIMIT = 'limit';
+
+    public const OPTION_MAX_PENDING = 'max-pending';
 
     public const ARGUMENT_RESOURCES = 'resources';
 
@@ -99,6 +103,7 @@ final class ProcessCommand extends Command
         $this->addOption(self::OPTION_SYNC_CONFIGURATION, null, InputOption::VALUE_NONE, 'Sync plugin configuration with database');
         $this->addOption(SynchronizeVariantConfigurationCommand::OPTION_SKIP_SETUP, null, InputOption::VALUE_NONE, sprintf('Skip setup - only applicable if \'--%s\' flag is set', self::OPTION_SYNC_CONFIGURATION));
         $this->addOption(self::OPTION_LIMIT, 'l', InputOption::VALUE_REQUIRED, 'Limit for how many images to process per resource. Default: unlimited');
+        $this->addOption(self::OPTION_MAX_PENDING, 'm', InputOption::VALUE_REQUIRED, 'Limit for pending images. If there are more pending images than the provided value, no more images will be added. Limit is per resource. Default: unlimited');
 
         $this->addArgument(self::ARGUMENT_RESOURCES, InputArgument::IS_ARRAY, 'Specify one or more resources to process. Ex: \'sylius.product_image sylius.taxon_image\'. If nothing is specified all available image resources are processed.');
 
@@ -127,6 +132,14 @@ EOF, self::OPTION_SYNC_CONFIGURATION, SynchronizeVariantConfigurationCommand::ge
             if ($limit === 0) {
                 $this->io->warning('Limit=0 means no images will be processed');
             }
+        }
+
+        $maxPendingImages = $input->getOption(self::OPTION_MAX_PENDING);
+        Assert::nullOrIntegerish($maxPendingImages);
+        if ($maxPendingImages !== null) {
+            $maxPendingImages = (int) $maxPendingImages;
+            Assert::greaterThan($maxPendingImages, 0, 'The max pending limit must be greater than 0');
+            $this->maxPendingImages = $maxPendingImages;
         }
 
         $availableResources = [];
@@ -210,6 +223,19 @@ EOF, self::OPTION_SYNC_CONFIGURATION, SynchronizeVariantConfigurationCommand::ge
         /** @var ObjectRepository|EntityRepository $repository */
         $repository = $manager->getRepository($resource->className);
         Assert::isInstanceOf($repository, EntityRepository::class);
+
+        if ($this->maxPendingImages !== null) {
+            $pendingImages = $repository->count(['processingState' => ImageInterface::PROCESSING_STATE_PENDING]);
+            if ($pendingImages >= $this->maxPendingImages) {
+                $this->io->note(sprintf(
+                    'There is already %d pending images which is more than the limit of %d. Not processing further.',
+                    $pendingImages,
+                    $this->maxPendingImages
+                ));
+
+                return;
+            }
+        }
 
         $i = 0;
         foreach ($this->getImages($repository, $manager, $variantConfiguration) as $image) {
