@@ -1,6 +1,9 @@
 imports:
     - { resource: "@SetonoSyliusImagePlugin/Resources/config/app/config.yaml" }
 
+parameters:
+    setono_sylius_image.public_processed_path: '/media/processed'
+
 setono_sylius_image:
     available_variants:
         sylius_shop_product_tiny_thumbnail: ~
