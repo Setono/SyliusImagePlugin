@@ -1,5 +1,10 @@
 parameters:
     setono_sylius_image.filesystem: setono_sylius_image_processed
+    
+    # This is the path where processed images are saved in a web context. I.e. if you can access a processed image here:
+    # https://example.com/media/image/processed/sylius_shop_large/ae/ef/a7f7d7a3e.jpg,
+    # then your public_processed_path should be /media/image/processed. As the name implies the path must be publicly accessible
+    setono_sylius_image.public_processed_path: '/media/image/processed'
 
 framework:
     http_client:
@@ -19,7 +24,7 @@ knp_gaufrette:
     adapters:
         setono_sylius_image_processed:
             local:
-                directory: "%sylius_core.public_dir%/media/image/processed"
+                directory: "%sylius_core.public_dir%%setono_sylius_image.public_processed_path%"
                 create: true
     filesystems:
         setono_sylius_image_processed:

@@ -10,6 +10,7 @@ use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
+use Webmozart\Assert\Assert;
 
 final class SetonoSyliusImageExtension extends AbstractResourceExtension implements PrependExtensionInterface
 {
@@ -23,9 +24,21 @@ final class SetonoSyliusImageExtension extends AbstractResourceExtension impleme
         $config = $this->processConfiguration($this->getConfiguration([], $container), $configs);
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
 
-        $container->setParameter('setono_sylius_image.public_processed_path', rtrim($config['public_processed_path'], '/'));
         $container->setParameter('setono_sylius_image.available_variants', $config['available_variants']);
         $container->setParameter('setono_sylius_image.image_resources', $config['image_resources']);
+
+        $pathParamName = 'setono_sylius_image.public_processed_path';
+        // UnitEnum is defined as part of getParameter return type which Psalm somehow does not understand.
+        /** @psalm-suppress UndefinedDocblockClass */
+        $publicProcessedPath = $container->getParameter($pathParamName);
+        Assert::stringNotEmpty($publicProcessedPath);
+        if (strpos($publicProcessedPath, '/') !== 0) {
+            throw new \InvalidArgumentException(sprintf("The parameter '%s' must start with a / (Value: %s)", $pathParamName, $publicProcessedPath));
+        }
+        if (strlen($publicProcessedPath) > 1 // If someone (for some reason) wants '/' to be the public path
+            && substr($publicProcessedPath, -1) === '/') {
+            throw new \InvalidArgumentException(sprintf("The parameter '%s' must NOT end with a / (Value: %s)", $pathParamName, $publicProcessedPath));
+        }
 
         $this->registerResources('setono_sylius_image', $config['driver'], $config['resources'], $container);
 

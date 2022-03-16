@@ -1,5 +1,5 @@
 setono_sylius_image_shop_render_image:
-    path: /media/image/processed/{variant}/{path}
+    path: '%setono_sylius_image.public_processed_path%/{variant}/{path}'
     methods: [ GET ]
     defaults:
         _controller: setono_sylius_image.controller.action.redirect_non_existing_image_variant
