@@ -115,7 +115,24 @@ final class CloudflareVariantGenerator implements VariantGeneratorInterface
                 $variant = $userData['variant'];
                 Assert::string($variant);
 
-                $extension = $this->getExtensionFromMimeType($contentType);
+                /**
+                 * We specifically request webp and avif variants and want to save these with their appropriate extension.
+                 * However, CloudFlare might convert png images to jpg or vice versa, but since we want to ensure that
+                 * the 'original path' from the Image is always available as a processed variant, we don't use the
+                 * Content-Type header from the response to determine extension, as this might differ from what we expect.
+                 */
+                switch ($contentType) {
+                    case 'image/webp':
+                    case 'image/avif':
+                        $extension = $this->getExtensionFromMimeType($contentType);
+
+                        break;
+                    default:
+                        $extension = pathinfo((string) $image->getPath(), \PATHINFO_EXTENSION);
+
+                        break;
+                }
+
                 $filename = $this->filesystem->tempnam($tempDir, '');
                 $this->filesystem->dumpFile($filename, $response->getContent());
 
