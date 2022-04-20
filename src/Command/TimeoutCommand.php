@@ -114,7 +114,7 @@ final class TimeoutCommand extends Command
                     if ($workflow->can($image, ProcessWorkflow::TRANSITION_FAIL)) {
                         $workflow->apply($image, ProcessWorkflow::TRANSITION_FAIL);
                     } else {
-                        $failedCount++;
+                        ++$failedCount;
                     }
 
                     ++$i;
@@ -136,29 +136,22 @@ final class TimeoutCommand extends Command
     /**
      * @return iterable<ImageInterface[]>
      */
-    private function getImages(EntityRepository $repository, ObjectManager $manager): iterable
+    private function getImages(EntityRepository $repository, ObjectManager $manager, int $resultsPerPage = 50): iterable
     {
-        $firstResult = 0;
-        $maxResults = 100;
-
         $qb = $repository->createQueryBuilder('o');
         $qb
             ->andWhere('o.processingState IN (:processingStates)')
             ->andWhere('o.processingStateUpdatedAt <= :threshold')
             ->setParameter('processingStates', [ImageInterface::PROCESSING_STATE_PENDING, ImageInterface::PROCESSING_STATE_PROCESSING])
             ->setParameter('threshold', new \DateTimeImmutable(sprintf('-%d min', $this->timeoutThreshold)))
-            ->setMaxResults($maxResults)
+            ->setMaxResults($resultsPerPage)
         ;
 
         do {
-            $qb->setFirstResult($firstResult);
-
             $images = $qb->getQuery()->getResult();
             Assert::isArray($images);
 
             yield $images;
-
-            $firstResult += $maxResults;
 
             $manager->clear();
         } while ([] !== $images);
