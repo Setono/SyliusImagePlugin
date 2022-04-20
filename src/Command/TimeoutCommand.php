@@ -103,58 +103,55 @@ final class TimeoutCommand extends Command
         $workflow = null;
 
         try {
+            $failedCount = 0;
             $i = 0;
-            foreach ($this->getImages($repository, $manager) as $image) {
-                if ($workflow === null) {
-                    $workflow = $this->workflowRegistry->get($image, ProcessWorkflow::NAME);
+            foreach ($this->getImages($repository, $manager) as $images) {
+                foreach ($images as $image) {
+                    if ($workflow === null) {
+                        $workflow = $this->workflowRegistry->get($image, ProcessWorkflow::NAME);
+                    }
+
+                    if ($workflow->can($image, ProcessWorkflow::TRANSITION_FAIL)) {
+                        $workflow->apply($image, ProcessWorkflow::TRANSITION_FAIL);
+                    } else {
+                        ++$failedCount;
+                    }
+
+                    ++$i;
                 }
 
-                if ($workflow->can($image, ProcessWorkflow::TRANSITION_FAIL)) {
-                    $workflow->apply($image, ProcessWorkflow::TRANSITION_FAIL);
-                }
-
-                if ($i % 50 === 0) {
-                    $manager->flush();
-                }
-
-                ++$i;
+                $manager->flush();
             }
         } finally {
             $manager->flush();
+        }
+
+        if ($failedCount > 0) {
+            $this->io->warning(sprintf('%s images could NOT take the \'%s\' transition', $failedCount, ProcessWorkflow::TRANSITION_FAIL));
         }
 
         $this->io->success(sprintf('%d image%s was timed out...', $i, $i === 1 ? '' : 's'));
     }
 
     /**
-     * @return iterable<ImageInterface>
+     * @return iterable<ImageInterface[]>
      */
-    private function getImages(EntityRepository $repository, ObjectManager $manager): iterable
+    private function getImages(EntityRepository $repository, ObjectManager $manager, int $resultsPerPage = 50): iterable
     {
-        $firstResult = 0;
-        $maxResults = 100;
-
         $qb = $repository->createQueryBuilder('o');
         $qb
             ->andWhere('o.processingState IN (:processingStates)')
             ->andWhere('o.processingStateUpdatedAt <= :threshold')
             ->setParameter('processingStates', [ImageInterface::PROCESSING_STATE_PENDING, ImageInterface::PROCESSING_STATE_PROCESSING])
             ->setParameter('threshold', new \DateTimeImmutable(sprintf('-%d min', $this->timeoutThreshold)))
-            ->setMaxResults($maxResults)
+            ->setMaxResults($resultsPerPage)
         ;
 
         do {
-            $qb->setFirstResult($firstResult);
-
             $images = $qb->getQuery()->getResult();
             Assert::isArray($images);
 
-            /** @var ImageInterface $image */
-            foreach ($images as $image) {
-                yield $image;
-            }
-
-            $firstResult += $maxResults;
+            yield $images;
 
             $manager->clear();
         } while ([] !== $images);

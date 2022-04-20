@@ -252,11 +252,9 @@ EOF, self::OPTION_SYNC_CONFIGURATION, SynchronizeVariantConfigurationCommand::ge
     private function getImages(
         EntityRepository $repository,
         ObjectManager $manager,
-        VariantConfigurationInterface $variantConfiguration
+        VariantConfigurationInterface $variantConfiguration,
+        int $resultsPerPage = 50
     ): iterable {
-        $firstResult = 0;
-        $maxResults = 100;
-
         $now = new \DateTimeImmutable();
 
         $qb = $repository->createQueryBuilder('o');
@@ -277,14 +275,16 @@ EOF, self::OPTION_SYNC_CONFIGURATION, SynchronizeVariantConfigurationCommand::ge
             ->setParameter('processingStates', [ImageInterface::PROCESSING_STATE_INITIAL, ImageInterface::PROCESSING_STATE_FAILED, ImageInterface::PROCESSING_STATE_PROCESSED])
         ;
 
+        $resultCount = 0;
+        $maxResults = $resultsPerPage;
+
         do {
             if ($this->limitPerResource !== null) {
-                $remaining = $this->limitPerResource - $firstResult;
+                $remaining = $this->limitPerResource - $resultCount;
                 $maxResults = min($maxResults, $remaining);
             }
 
             $qb->setMaxResults($maxResults);
-            $qb->setFirstResult($firstResult);
 
             $images = $qb->getQuery()->getResult();
             Assert::isArray($images);
@@ -294,9 +294,9 @@ EOF, self::OPTION_SYNC_CONFIGURATION, SynchronizeVariantConfigurationCommand::ge
                 yield $image;
             }
 
-            $firstResult += $maxResults;
+            $resultCount += count($images);
 
             $manager->clear();
-        } while ([] !== $images && ($this->limitPerResource === null || $firstResult < $this->limitPerResource));
+        } while ([] !== $images && ($this->limitPerResource === null || $resultCount < $this->limitPerResource));
     }
 }
