@@ -14,7 +14,7 @@
         "knplabs/gaufrette": "^0.8",
         "liip/imagine-bundle": "^2.6",
         "psr/event-dispatcher": "^1.0",
-        "setono/doctrine-object-manager-trait": "^1.0",
+        "setono/doctrine-object-manager-trait": "^1.1",
         "spatie/data-transfer-object": "^2.8",
         "sylius/resource-bundle": "^1.6",
         "symfony/config": "^4.4 || ^5.4",
@@ -35,7 +35,7 @@
     "require-dev": {
         "api-platform/core": "^2.6",
         "friendsofsymfony/oauth-server-bundle": ">2.0.0-alpha.0 ^2.0@dev",
-        "lexik/jwt-authentication-bundle": "^2.14",
+        "lexik/jwt-authentication-bundle": "^2.16",
         "matthiasnoback/symfony-dependency-injection-test": "^4.3",
         "phpunit/phpunit": "^9.5",
         "psalm/plugin-phpunit": "^0.17",
