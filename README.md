@@ -25,7 +25,7 @@ in `config/bundles.php` file of your project before (!) `SyliusGridBundle`:
 $bundles = [
     // ...
     
-    Setono\SyliusFacebookPlugin\SetonoSyliusFacebookPlugin::class => ['all' => true],
+    Setono\SyliusImagePlugin\SetonoSyliusImagePlugin::class => ['all' => true],
     Sylius\Bundle\GridBundle\SyliusGridBundle::class => ['all' => true],
     
     // ...
