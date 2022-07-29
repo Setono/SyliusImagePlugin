@@ -15,9 +15,7 @@ final class RedirectNonExistingImageVariantAction
 {
     public function __invoke(Request $request, string $variant, string $path): RedirectResponse
     {
-        $response = new RedirectResponse('/media/image/' . $path);
         // todo add cache control headers
-
-        return $response;
+        return new RedirectResponse('/media/image/' . $path);
     }
 }
