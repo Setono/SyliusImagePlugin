@@ -80,10 +80,14 @@ final class Variant
         $this->fit = $fit;
     }
 
+    /**
+     * @param array<string, array> $filterSet
+     */
     public static function fromFilterSet(string $name, string $generator, array $filterSet): self
     {
         $filters = $filterSet['filters'] ?? [];
 
+        /** @psalm-suppress MixedArgument,MixedArrayAccess */
         return new self($name, $generator, $filters['thumbnail']['size'][0] ?? null, $filters['thumbnail']['size'][1] ?? null, self::FIT_SCALE_DOWN);
     }
 
@@ -98,36 +102,5 @@ final class Variant
     public function __toString(): string
     {
         return $this->name;
-    }
-
-    /**
-     * @psalm-assert array{filters: array{thumbnail: array{size: list<int>}}} $filterSet
-     */
-    private static function validateFilterSet(string $name, array $filterSet): void
-    {
-        Assert::keyExists($filterSet, 'filters');
-
-        $filters = $filterSet['filters'];
-        Assert::isArray($filters);
-
-        Assert::keyExists($filters, 'thumbnail', sprintf('A thumbnail filter must be configured for the filter set "%s"', $name));
-
-        $filterValidators = [
-            'thumbnail' => static function (array $options): void {
-                Assert::keyExists($options, 'size', 'The thumbnail filter must have a size option');
-                $size = $options['size'];
-                Assert::isList($size);
-                Assert::count($size, 2);
-                Assert::allInteger($size);
-            },
-        ];
-
-        foreach ($filters as $filter => $options) {
-            Assert::oneOf($filter, ['thumbnail', 'background'], sprintf('The filter "%s" on the "%s" filter set is not supported', $name, $filter));
-
-            if (isset($filterValidators[$filter])) {
-                $filterValidators[$filter]($options);
-            }
-        }
     }
 }

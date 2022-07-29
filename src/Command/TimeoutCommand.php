@@ -134,9 +134,11 @@ final class TimeoutCommand extends Command
     }
 
     /**
-     * @return iterable<ImageInterface[]>
+     * @psalm-suppress MixedReturnTypeCoercion
+     *
+     * @return \Generator<int, ImageInterface[]>
      */
-    private function getImages(EntityRepository $repository, ObjectManager $manager, int $resultsPerPage = 50): iterable
+    private function getImages(EntityRepository $repository, ObjectManager $manager, int $resultsPerPage = 50): \Generator
     {
         $qb = $repository->createQueryBuilder('o');
         $qb

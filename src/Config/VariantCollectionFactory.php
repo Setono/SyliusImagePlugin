@@ -8,13 +8,13 @@ use Webmozart\Assert\Assert;
 
 final class VariantCollectionFactory
 {
-    /** @var array[] */
+    /** @var array<string, array<string, array>> */
     private array $filterSets;
 
     /**
      * These are the LiipImagineBundle configured filter sets
      *
-     * @param array<string, array> $filterSets
+     * @param array<string, array<string, array>> $filterSets
      */
     public function __construct(array $filterSets)
     {

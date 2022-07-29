@@ -11,8 +11,12 @@ final class ImageResourceCollectionFactory
 {
     private VariantCollectionInterface $variantCollection;
 
+    /** @var array<string, array{classes: array{model: class-string}}> */
     private array $resources;
 
+    /**
+     * @param array<string, array{classes: array{model: class-string}}> $resources
+     */
     public function __construct(VariantCollectionInterface $variantCollection, array $resources)
     {
         $this->variantCollection = $variantCollection;
@@ -45,6 +49,8 @@ final class ImageResourceCollectionFactory
 
             $syliusResource = $this->resources[$resourceName];
             $model = $syliusResource['classes']['model'];
+
+            /** @psalm-suppress DocblockTypeContradiction */
             Assert::isAOf($model, ImageInterface::class, sprintf(
                 'The resource "%s" (model: %s) does not implement %s',
                 $resourceName,
