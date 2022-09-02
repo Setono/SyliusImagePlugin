@@ -26,6 +26,7 @@
         "symfony/http-client": "^4.4 || ^5.4",
         "symfony/http-client-contracts": "^1.1 || ^2.5 || ^3.1",
         "symfony/http-foundation": "^4.4 || ^5.4",
+        "symfony/lock": "^4.4 || ^5.4",
         "symfony/messenger": "^4.4 || ^5.4",
         "symfony/mime": "^4.4 || ^5.4",
         "symfony/workflow": "^4.4 || ^5.4",
