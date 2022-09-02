@@ -5,6 +5,10 @@
 [![Build Status][ico-github-actions]][link-github-actions]
 [![Code Coverage][ico-code-coverage]][link-code-coverage]
 
+This library will optimize your images and it works seamlessly with a standard Sylius installation because it has
+wise fallbacks. Out of the box this plugin uses Cloudflare, so to use it you need a Cloudflare account with the
+[images subscription](https://www.cloudflare.com/products/cloudflare-images/).
+
 ## Installation
 
 ### Step 1: Download the plugin
