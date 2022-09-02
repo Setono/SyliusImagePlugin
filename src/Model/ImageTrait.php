@@ -15,7 +15,7 @@ trait ImageTrait
      */
     protected int $version = 1;
 
-    /** @ORM\Column(type="string", options={"default": ImageInterface::PROCESSING_STATE_INITIAL}) */
+    /** @ORM\Column(type="string", options={"default": \Setono\SyliusImagePlugin\Model\ImageInterface::PROCESSING_STATE_INITIAL}) */
     protected string $processingState = ImageInterface::PROCESSING_STATE_INITIAL;
 
     /** @ORM\Column(type="datetime", nullable=true) */
