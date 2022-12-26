@@ -9,7 +9,7 @@
     ],
     "require": {
         "php": ">=7.4",
-        "doctrine/orm": "^2.6",
+        "doctrine/orm": "^2.14",
         "doctrine/persistence": "^2.0",
         "knplabs/gaufrette": "^0.8",
         "liip/imagine-bundle": "^2.6",
