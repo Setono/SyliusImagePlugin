@@ -12,7 +12,7 @@
         "doctrine/orm": "^2.6",
         "doctrine/persistence": "^2.0",
         "knplabs/gaufrette": "^0.8 || ^0.9 || ^0.10 || ^0.11",
-        "liip/imagine-bundle": "^2.6",
+        "liip/imagine-bundle": "^2.10",
         "psr/event-dispatcher": "^1.0",
         "setono/doctrine-object-manager-trait": "^1.1",
         "spatie/data-transfer-object": "^2.8",
