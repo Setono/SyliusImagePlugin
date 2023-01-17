@@ -8,6 +8,5 @@ use ComposerUnused\ComposerUnused\Configuration\NamedFilter;
 return static function (Configuration $config): Configuration {
     return $config
         ->addNamedFilter(NamedFilter::fromString('symfony/http-client'))
-        ->addNamedFilter(NamedFilter::fromString('symfony/lock'))
     ;
 };
