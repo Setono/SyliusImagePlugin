@@ -6,6 +6,9 @@ namespace Setono\SyliusImagePlugin\Registry;
 
 use Setono\SyliusImagePlugin\VariantGenerator\VariantGeneratorInterface;
 
+/**
+ * @implements \IteratorAggregate<string, VariantGeneratorInterface>
+ */
 final class VariantGeneratorRegistry implements VariantGeneratorRegistryInterface, \IteratorAggregate
 {
     /** @var array<string, VariantGeneratorInterface> */

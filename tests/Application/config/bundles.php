@@ -50,7 +50,6 @@ return [
     FOS\OAuthServerBundle\FOSOAuthServerBundle::class => ['all' => true],
     Sylius\Bundle\AdminApiBundle\SyliusAdminApiBundle::class => ['all' => true],
     Setono\SyliusImagePlugin\SetonoSyliusImagePlugin::class => ['all' => true],
-    Symfony\Bundle\MakerBundle\MakerBundle::class => ['dev' => true],
     Symfony\Bundle\DebugBundle\DebugBundle::class => ['dev' => true, 'test' => true, 'test_cached' => true],
     Symfony\Bundle\WebProfilerBundle\WebProfilerBundle::class => ['dev' => true, 'test' => true, 'test_cached' => true],
     ApiPlatform\Core\Bridge\Symfony\Bundle\ApiPlatformBundle::class => ['all' => true],

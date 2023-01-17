@@ -6,6 +6,9 @@ namespace Setono\SyliusImagePlugin\Registry;
 
 use Setono\SyliusImagePlugin\VariantGenerator\VariantGeneratorInterface;
 
+/**
+ * @extends \Traversable<array-key, VariantGeneratorInterface>
+ */
 interface VariantGeneratorRegistryInterface extends \Traversable
 {
     public function add(VariantGeneratorInterface $variantGenerator): void;

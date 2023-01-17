@@ -6,6 +6,9 @@ namespace Setono\SyliusImagePlugin\Config;
 
 use Setono\SyliusImagePlugin\Model\ImageInterface;
 
+/**
+ * @implements \IteratorAggregate<string, ImageResource>
+ */
 final class ImageResourceCollection implements ImageResourceCollectionInterface, \IteratorAggregate
 {
     /** @var array<string, ImageResource> */

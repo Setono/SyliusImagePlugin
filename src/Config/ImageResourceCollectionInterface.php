@@ -7,8 +7,7 @@ namespace Setono\SyliusImagePlugin\Config;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
 
 /**
- * @template-covariant TKey
- * @extends \Traversable<TKey, ImageResource>
+ * @extends \Traversable<array-key, ImageResource>
  */
 interface ImageResourceCollectionInterface extends \Traversable
 {
