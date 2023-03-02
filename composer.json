@@ -11,7 +11,7 @@
         "php": ">=7.4",
         "doctrine/orm": "^2.6",
         "doctrine/persistence": "^2.0",
-        "knplabs/gaufrette": "^0.8 || ^0.9 || ^0.10 || ^0.11",
+        "knplabs/gaufrette": "^0.8.3",
         "liip/imagine-bundle": "^2.6",
         "psr/event-dispatcher": "^1.0",
         "setono/doctrine-object-manager-trait": "^1.1",
