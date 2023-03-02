@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Setono\SyliusImagePlugin\DependencyInjection;
 
-use Setono\SyliusImagePlugin\Doctrine\ORM\VariantConfigurationRepository;
 use Setono\SyliusImagePlugin\EventListener\Doctrine\ProcessUpdatedImageListener;
 use Setono\SyliusImagePlugin\EventListener\Doctrine\RemoveProcessedImagesListener;
 use Setono\SyliusImagePlugin\Model\VariantConfiguration;
+use Setono\SyliusImagePlugin\Repository\VariantConfigurationRepository;
 use Sylius\Bundle\ResourceBundle\Controller\ResourceController;
 use Sylius\Bundle\ResourceBundle\Form\Type\DefaultResourceType;
 use Sylius\Component\Resource\Factory\Factory;

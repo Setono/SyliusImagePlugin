@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Setono\SyliusImagePlugin\Doctrine\ORM;
+namespace Setono\SyliusImagePlugin\Repository;
 
 use Setono\SyliusImagePlugin\Model\VariantConfigurationInterface;
-use Setono\SyliusImagePlugin\Repository\VariantConfigurationRepositoryInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Webmozart\Assert\Assert;
 
