@@ -10,7 +10,6 @@ use Setono\SyliusImagePlugin\EventListener\Doctrine\RemoveProcessedImagesListene
 use Setono\SyliusImagePlugin\Model\VariantConfiguration;
 use Sylius\Bundle\ResourceBundle\Controller\ResourceController;
 use Sylius\Bundle\ResourceBundle\Form\Type\DefaultResourceType;
-use Sylius\Bundle\ResourceBundle\SyliusResourceBundle;
 use Sylius\Component\Resource\Factory\Factory;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -30,9 +29,6 @@ final class Configuration implements ConfigurationInterface
             ->addDefaultsIfNotSet()
             ->fixXmlConfig('available_variant')
             ->children()
-                ->scalarNode('driver')
-                    ->defaultValue(SyliusResourceBundle::DRIVER_DOCTRINE_ORM)
-                ->end()
                 ->arrayNode('listeners')
                     ->canBeDisabled()
                     ->addDefaultsIfNotSet()
@@ -97,9 +93,7 @@ final class Configuration implements ConfigurationInterface
     private function addResourcesSection(ArrayNodeDefinition $node): void
     {
         /**
-         * @psalm-suppress MixedMethodCall
-         * @psalm-suppress PossiblyUndefinedMethod
-         * @psalm-suppress PossiblyNullReference
+         * @psalm-suppress MixedMethodCall,PossiblyUndefinedMethod,PossiblyNullReference
          */
         $node
             ->children()
@@ -118,13 +112,6 @@ final class Configuration implements ConfigurationInterface
                                         ->scalarNode('repository')->defaultValue(VariantConfigurationRepository::class)->cannotBeEmpty()->end()
                                         ->scalarNode('form')->defaultValue(DefaultResourceType::class)->end()
                                         ->scalarNode('factory')->defaultValue(Factory::class)->end()
-                                    ->end()
-                                ->end()
-                            ->end()
-                        ->end()
-                    ->end()
-                ->end()
-            ->end()
         ;
     }
 }

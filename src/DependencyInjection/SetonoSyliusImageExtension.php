@@ -6,6 +6,7 @@ namespace Setono\SyliusImagePlugin\DependencyInjection;
 
 use Setono\SyliusImagePlugin\Workflow\ProcessWorkflow;
 use Sylius\Bundle\ResourceBundle\DependencyInjection\Extension\AbstractResourceExtension;
+use Sylius\Bundle\ResourceBundle\SyliusResourceBundle;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
@@ -19,7 +20,7 @@ final class SetonoSyliusImageExtension extends AbstractResourceExtension impleme
         /**
          * @psalm-suppress PossiblyNullArgument
          *
-         * @var array{driver: string, listeners: array{enabled: bool, update_image: bool, remove_processed_images: bool, purge_liip_imagine_cache: bool}, resources: array<string, mixed>, public_processed_path: string, available_variants: array, image_resources: array<string, array{resource: string, variants: list<string>}>} $config
+         * @var array{listeners: array{enabled: bool, update_image: bool, remove_processed_images: bool, purge_liip_imagine_cache: bool}, resources: array<string, mixed>, public_processed_path: string, available_variants: array, image_resources: array<string, array{resource: string, variants: list<string>}>} $config
          */
         $config = $this->processConfiguration($this->getConfiguration([], $container), $configs);
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
@@ -28,8 +29,6 @@ final class SetonoSyliusImageExtension extends AbstractResourceExtension impleme
         $container->setParameter('setono_sylius_image.image_resources', $config['image_resources']);
 
         $pathParamName = 'setono_sylius_image.public_processed_path';
-        // UnitEnum is defined as part of getParameter return type which Psalm somehow does not understand.
-        /** @psalm-suppress UndefinedDocblockClass */
         $publicProcessedPath = $container->getParameter($pathParamName);
         Assert::stringNotEmpty($publicProcessedPath);
         if (strpos($publicProcessedPath, '/') !== 0) {
@@ -40,7 +39,7 @@ final class SetonoSyliusImageExtension extends AbstractResourceExtension impleme
             throw new \InvalidArgumentException(sprintf("The parameter '%s' must NOT end with a / (Value: %s)", $pathParamName, $publicProcessedPath));
         }
 
-        $this->registerResources('setono_sylius_image', $config['driver'], $config['resources'], $container);
+        $this->registerResources('setono_sylius_image', SyliusResourceBundle::DRIVER_DOCTRINE_ORM, $config['resources'], $container);
 
         $loader->load('services.xml');
 
