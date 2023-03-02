@@ -123,7 +123,7 @@ $ php bin/console doctrine:migrations:migrate
 [ico-version]: https://poser.pugx.org/setono/sylius-image-plugin/v/stable
 [ico-license]: https://poser.pugx.org/setono/sylius-image-plugin/license
 [ico-github-actions]: https://github.com/Setono/SyliusImagePlugin/workflows/build/badge.svg
-[ico-code-coverage]: https://codecov.io/gh/Setono/SyliusImagePlugin/branch/0.1.x/graph/badge.svg
+[ico-code-coverage]: https://codecov.io/gh/Setono/SyliusImagePlugin/branch/0.2.x/graph/badge.svg
 
 [link-packagist]: https://packagist.org/packages/setono/sylius-image-plugin
 [link-github-actions]: https://github.com/Setono/SyliusImagePlugin/actions
