@@ -1,5 +1,3 @@
-# https://docs.github.com/en/github/administering-a-repository/configuration-options-for-dependency-updates
-
 version: 2
 
 updates:
@@ -8,10 +6,9 @@ updates:
             prefix: "composer"
         directory: "/"
         ignore:
-            -   dependency-name: "symfony*"
-            -   dependency-name: "sylius/sylius"
-        open-pull-requests-limit: 10
+            -   dependency-name: "symfony/*"
+            -   dependency-name: "sylius/*"
         package-ecosystem: "composer"
         schedule:
             interval: "weekly"
-        versioning-strategy: "increase"
+        versioning-strategy: "increase-if-necessary"
