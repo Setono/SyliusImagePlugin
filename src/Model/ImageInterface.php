@@ -35,9 +35,9 @@ interface ImageInterface extends BaseImageInterface
 
     public function setProcessingRetryAt(?DateTimeInterface $processingRetryAt): void;
 
-    public function getVariantConfiguration(): ?VariantConfigurationInterface;
+    public function getPresetConfiguration(): ?PresetConfigurationInterface;
 
-    public function setVariantConfiguration(VariantConfigurationInterface $variantConfiguration): void;
+    public function setPresetConfiguration(PresetConfigurationInterface $presetConfiguration): void;
 
     /**
      * @return array<string, mixed>

@@ -6,9 +6,17 @@ namespace Setono\SyliusImagePlugin\Config;
 
 use Webmozart\Assert\Assert;
 
-final class Variant
+final class Preset
 {
+    public const FORMAT_AVIF = 'avif';
+
+    public const FORMAT_JPG = 'jpg';
+
+    public const FORMAT_WEBP = 'webp';
+
     /**
+     * TODO Add this to the docs of the plugin
+     *
      * See descriptions of different fits here: https://developers.cloudflare.com/images/cloudflare-images/resize-images
      */
 
@@ -55,40 +63,56 @@ final class Variant
      */
     public string $name;
 
+    /** @var list<string> */
+    public array $formats;
+
     public ?int $width;
 
     public ?int $height;
 
-    public ?string $fit;
+    public string $fit = self::FIT_SCALE_DOWN;
+
+    public ?string $generator = null;
 
     /**
-     * The name of the generator to use for this variant, i.e. 'cloudflare'
+     * @param list<string> $formats
      */
-    public string $generator;
-
-    public function __construct(string $name, string $generator, ?int $width, ?int $height, ?string $fit)
+    public function __construct(string $name, array $formats, int $width = null, int $height = null)
     {
         Assert::stringNotEmpty($name);
         Assert::nullOrGreaterThan($width, 0);
         Assert::nullOrGreaterThan($height, 0);
-        Assert::nullOrStringNotEmpty($fit);
+        if (null === $width && null === $height) {
+            throw new \InvalidArgumentException('Either the width or height must be set on a preset.');
+        }
+        Assert::notEmpty($formats);
 
         $this->name = $name;
-        $this->generator = $generator;
+        $this->formats = $formats;
         $this->width = $width;
         $this->height = $height;
-        $this->fit = $fit;
     }
 
     /**
-     * @param array<string, array> $filterSet
+     * @param array{name: string, formats: list<string>, width?: int, height?: int, fit?: string, generator?: string} $configuration
      */
-    public static function fromFilterSet(string $name, string $generator, array $filterSet): self
+    public static function fromArray(array $configuration): self
     {
-        $filters = $filterSet['filters'] ?? [];
+        $obj = new self(
+            $configuration['name'],
+            $configuration['formats'],
+            $configuration['width'] ?? null,
+            $configuration['height'] ?? null
+        );
 
-        /** @psalm-suppress MixedArgument,MixedArrayAccess */
-        return new self($name, $generator, $filters['thumbnail']['size'][0] ?? null, $filters['thumbnail']['size'][1] ?? null, self::FIT_SCALE_DOWN);
+        if (isset($configuration['fit'])) {
+            Assert::oneOf($configuration['fit'], self::AVAILABLE_FITS);
+            $obj->fit = $configuration['fit'];
+        }
+
+        $obj->generator = $configuration['generator'] ?? null;
+
+        return $obj;
     }
 
     public function equals(self $other): bool

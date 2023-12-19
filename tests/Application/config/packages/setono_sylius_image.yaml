@@ -5,10 +5,10 @@ parameters:
     setono_sylius_image.public_processed_path: '/media/processed'
 
 setono_sylius_image:
-    available_variants:
-        sylius_shop_product_tiny_thumbnail: ~
-        sylius_shop_product_small_thumbnail: ~
-        sylius_shop_product_thumbnail: ~
-        sylius_shop_product_large_thumbnail: ~
+    listeners: false
+    presets:
+        app_product:
+            width: 400
+            height: 300
     image_resources: 
         sylius.product_image: ~

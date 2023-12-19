@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Setono\SyliusImagePlugin\Repository;
 
-use Setono\SyliusImagePlugin\Model\VariantConfigurationInterface;
+use Setono\SyliusImagePlugin\Model\PresetConfigurationInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Webmozart\Assert\Assert;
 
-class VariantConfigurationRepository extends EntityRepository implements VariantConfigurationRepositoryInterface
+class PresetConfigurationRepository extends EntityRepository implements PresetConfigurationRepositoryInterface
 {
-    public function findNewest(): ?VariantConfigurationInterface
+    public function findNewest(): ?PresetConfigurationInterface
     {
         $obj = $this->createQueryBuilder('o')
             ->addOrderBy('o.createdAt', 'desc')
@@ -19,7 +19,7 @@ class VariantConfigurationRepository extends EntityRepository implements Variant
             ->getOneOrNullResult()
         ;
 
-        Assert::nullOrIsInstanceOf($obj, VariantConfigurationInterface::class);
+        Assert::nullOrIsInstanceOf($obj, PresetConfigurationInterface::class);
 
         return $obj;
     }

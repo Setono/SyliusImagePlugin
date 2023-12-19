@@ -9,8 +9,8 @@ use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
 use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
 use Setono\SyliusImagePlugin\Config\ImageResource;
+use Setono\SyliusImagePlugin\Config\ImageResourceRegistryInterface;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
-use Setono\SyliusImagePlugin\Provider\ProcessableImageResourceProviderInterface;
 use Setono\SyliusImagePlugin\Workflow\ProcessWorkflow;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Symfony\Component\Console\Command\Command;
@@ -27,7 +27,7 @@ final class TimeoutCommand extends Command
     protected static $defaultName = 'setono:sylius-image:timeout';
 
     /** @var string|null */
-    protected static $defaultDescription = 'This command will \'time out\' images that are hanging in the processing state above a given threshold';
+    protected static $defaultDescription = 'This command will "time out" images that are hanging in the processing state above a given threshold';
 
     /**
      * It is set in the initialize method which is called before the execute method
@@ -36,7 +36,7 @@ final class TimeoutCommand extends Command
      */
     private SymfonyStyle $io;
 
-    private ProcessableImageResourceProviderInterface $processableImageResourceProvider;
+    private ImageResourceRegistryInterface $imageResourceRegistry;
 
     private Registry $workflowRegistry;
 
@@ -47,14 +47,14 @@ final class TimeoutCommand extends Command
 
     public function __construct(
         ManagerRegistry $managerRegistry,
-        ProcessableImageResourceProviderInterface $processableImageResourceProvider,
+        ImageResourceRegistryInterface $imageResourceRegistry,
         Registry $workflowRegistry,
         int $timeoutThreshold
     ) {
         parent::__construct();
 
         $this->managerRegistry = $managerRegistry;
-        $this->processableImageResourceProvider = $processableImageResourceProvider;
+        $this->imageResourceRegistry = $imageResourceRegistry;
         $this->workflowRegistry = $workflowRegistry;
         $this->timeoutThreshold = $timeoutThreshold;
     }
@@ -66,9 +66,7 @@ final class TimeoutCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $processableImageResources = $this->processableImageResourceProvider->getResources();
-
-        if ([] === $processableImageResources) {
+        if ($this->imageResourceRegistry->isEmpty()) {
             $this->io->writeln(sprintf('No resources implements the interface %s', ImageInterface::class));
 
             return 0;
@@ -81,10 +79,10 @@ final class TimeoutCommand extends Command
             $dtThreshold->format('Y-m-d H:i:s')
         ));
 
-        $this->io->section('Processing resources');
+        $this->io->section('Processing image resources');
 
-        foreach ($processableImageResources as $processableResource) {
-            $this->processResource($processableResource);
+        foreach ($this->imageResourceRegistry->all() as $imageResource) {
+            $this->processResource($imageResource);
         }
 
         return 0;
@@ -92,12 +90,12 @@ final class TimeoutCommand extends Command
 
     private function processResource(ImageResource $imageResource): void
     {
-        $this->io->text(sprintf('- %s', $imageResource->className));
+        $this->io->text(sprintf('- %s', $imageResource->class));
 
-        $manager = $this->getManager($imageResource->className);
+        $manager = $this->getManager($imageResource->class);
 
         /** @var ObjectRepository|EntityRepository $repository */
-        $repository = $manager->getRepository($imageResource->className);
+        $repository = $manager->getRepository($imageResource->class);
         Assert::isInstanceOf($repository, EntityRepository::class);
 
         $workflow = null;

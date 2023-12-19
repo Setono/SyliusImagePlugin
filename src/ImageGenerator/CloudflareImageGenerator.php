@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Setono\SyliusImagePlugin\VariantGenerator;
+namespace Setono\SyliusImagePlugin\ImageGenerator;
 
 use Gaufrette\File;
 use Setono\SyliusImagePlugin\Client\Cloudflare\ClientInterface;
 use Setono\SyliusImagePlugin\Client\Cloudflare\Response\ImageVariant;
 use Setono\SyliusImagePlugin\Client\Cloudflare\Response\VariantResult;
-use Setono\SyliusImagePlugin\Config\Variant;
-use Setono\SyliusImagePlugin\Config\VariantCollectionInterface;
+use Setono\SyliusImagePlugin\Config\Preset;
 use Setono\SyliusImagePlugin\File\ImageVariantFile;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
 use Symfony\Component\DependencyInjection\Container;
@@ -20,10 +19,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 use Webmozart\Assert\Assert;
 
-final class CloudflareVariantGenerator implements VariantGeneratorInterface
+final class CloudflareImageGenerator implements ImageGeneratorInterface
 {
-    public const NAME = 'cloudflare';
-
     private ClientInterface $client;
 
     private HttpClientInterface $httpClient;
@@ -44,16 +41,14 @@ final class CloudflareVariantGenerator implements VariantGeneratorInterface
         $this->filesystem = $filesystem;
     }
 
-    public function getName(): string
+    public function supportsFormat(string $format): bool
     {
-        return self::NAME;
+        return in_array($format, [Preset::FORMAT_JPG, Preset::FORMAT_WEBP], true);
     }
 
-    public function generate(ImageInterface $image, File $file, VariantCollectionInterface $variantCollection): iterable
+    public function generate(ImageInterface $image, File $file, array $presets): iterable
     {
         $tempDir = $this->getTempDir();
-
-        $variants = $variantCollection->getByGenerator($this);
 
         try {
             $filename = sprintf('%s/%s', $tempDir, self::pathToFilename((string) $image->getPath()));
@@ -62,7 +57,7 @@ final class CloudflareVariantGenerator implements VariantGeneratorInterface
             $response = $this->client->uploadImage($filename);
             $cloudflareId = $response->result->id;
 
-            $cloudflareVariants = self::resolveVariants($variants, $response->result->variants);
+            $cloudflareVariants = self::resolveVariants($presets, $response->result->variants);
 
             $responses = [];
             foreach ($cloudflareVariants as $variant => $url) {
@@ -156,7 +151,7 @@ final class CloudflareVariantGenerator implements VariantGeneratorInterface
     }
 
     /**
-     * @param array<array-key, Variant> $variants
+     * @param array<array-key, Preset> $variants
      * @param array<array-key, ImageVariant> $cloudflareVariants
      *
      * @return array<string, string>
@@ -193,21 +188,22 @@ final class CloudflareVariantGenerator implements VariantGeneratorInterface
         return $dir;
     }
 
-    public function setup(VariantCollectionInterface $variantCollection): SetupResultInterface
+    public function setup(array $presets): SetupResultInterface
     {
         $setupResult = new SetupResult($this);
 
         // TODO: Add synchronization of changes to variant
-        $this->ensureVariantsExists($variantCollection, $setupResult);
+        $this->ensureVariantsExists($presets, $setupResult);
 
         return $setupResult;
     }
 
-    private function ensureVariantsExists(VariantCollectionInterface $variantCollection, SetupResult $setupResult): void
+    /**
+     * @param list<Preset> $presets
+     */
+    private function ensureVariantsExists(array $presets, SetupResult $setupResult): void
     {
-        $variants = $variantCollection->getByGenerator(self::NAME);
-
-        if (empty($variants)) {
+        if ([] === $presets) {
             return;
         }
 
@@ -215,10 +211,10 @@ final class CloudflareVariantGenerator implements VariantGeneratorInterface
             return Container::underscore($variantResult->id); // variants in Cloudflare are saved as camel case
         }, $this->client->getVariants()->result->variants);
 
-        /** @var array<array-key, Variant> $variantsToCreate */
+        /** @var list<Preset> $variantsToCreate */
         $variantsToCreate = [];
 
-        foreach ($variants as $variant) {
+        foreach ($presets as $variant) {
             if (in_array($variant->name, $existingVariants, true)) {
                 continue;
             }
@@ -240,11 +236,8 @@ final class CloudflareVariantGenerator implements VariantGeneratorInterface
         }
     }
 
-    private static function isVariantCreatable(Variant $variant): bool
+    private static function isVariantCreatable(Preset $preset): bool
     {
-        return $variant->width !== null
-            && $variant->height !== null
-            && $variant->fit !== null
-            && in_array($variant->fit, Variant::AVAILABLE_FITS, true);
+        return $preset->width !== null && $preset->height !== null;
     }
 }

@@ -2,26 +2,15 @@
 <container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="setono_sylius_image.config.variant_collection_factory"
-                 class="Setono\SyliusImagePlugin\Config\VariantCollectionFactory">
-            <argument>%liip_imagine.filter_sets%</argument>
+        <service id="setono_sylius_image.config.preset_registry"
+                 class="Setono\SyliusImagePlugin\Config\PresetRegistry">
+            <factory class="Setono\SyliusImagePlugin\Config\PresetRegistry" method="fromArray"/>
+            <argument>%setono_sylius_image.presets%</argument>
         </service>
 
-        <service id="setono_sylius_image.config.variant_collection"
-                 class="Setono\SyliusImagePlugin\Config\VariantCollection">
-            <factory service="setono_sylius_image.config.variant_collection_factory" method="createFromConfiguration"/>
-            <argument>%setono_sylius_image.available_variants%</argument>
-        </service>
-
-        <service id="setono_sylius_image.config.image_resource_collection_factory"
-                 class="Setono\SyliusImagePlugin\Config\ImageResourceCollectionFactory">
-            <argument type="service" id="setono_sylius_image.config.variant_collection"/>
-            <argument>%sylius.resources%</argument>
-        </service>
-
-        <service id="setono_sylius_image.config.image_resource_collection"
-                 class="Setono\SyliusImagePlugin\Config\ImageResourceCollection">
-            <factory service="setono_sylius_image.config.image_resource_collection_factory" method="createFromConfiguration"/>
+        <service id="setono_sylius_image.config.image_resource_registry"
+                 class="Setono\SyliusImagePlugin\Config\ImageResourceRegistry">
+            <factory class="Setono\SyliusImagePlugin\Config\ImageResourceRegistry" method="fromArray"/>
             <argument>%setono_sylius_image.image_resources%</argument>
         </service>
     </services>

@@ -5,13 +5,13 @@
                   xmlns:gedmo="http://gediminasm.org/schemas/orm/doctrine-extensions-mapping"
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
                                       http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-    <mapped-superclass name="Setono\SyliusImagePlugin\Model\VariantConfiguration"
-                       table="setono_sylius_image__variant_configuration">
+    <mapped-superclass name="Setono\SyliusImagePlugin\Model\PresetConfiguration"
+                       table="setono_sylius_image__preset_configuration">
         <id name="id" type="integer">
             <generator strategy="AUTO"/>
         </id>
 
-        <field name="variantCollection" type="object"/>
+        <field name="presets" type="array"/>
 
         <field name="createdAt" type="datetime">
             <gedmo:timestampable on="create"/>

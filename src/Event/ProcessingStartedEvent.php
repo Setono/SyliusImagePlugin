@@ -4,15 +4,22 @@ declare(strict_types=1);
 
 namespace Setono\SyliusImagePlugin\Event;
 
-use Setono\SyliusImagePlugin\Config\VariantCollectionInterface;
+use Setono\SyliusImagePlugin\Config\Preset;
 
 final class ProcessingStartedEvent
 {
-    /** @psalm-readonly */
-    public VariantCollectionInterface $variantCollection;
+    /**
+     * @readonly
+     *
+     * @var array<string, Preset>
+     */
+    public array $presets;
 
-    public function __construct(VariantCollectionInterface $variantCollection)
+    /**
+     * @param array<string, Preset> $presets
+     */
+    public function __construct(array $presets)
     {
-        $this->variantCollection = $variantCollection;
+        $this->presets = $presets;
     }
 }

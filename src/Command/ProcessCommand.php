@@ -10,13 +10,13 @@ use Doctrine\Persistence\ObjectRepository;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
 use Setono\SyliusImagePlugin\Config\ImageResource;
-use Setono\SyliusImagePlugin\Config\VariantCollectionInterface;
+use Setono\SyliusImagePlugin\Config\ImageResourceRegistryInterface;
+use Setono\SyliusImagePlugin\Config\PresetRegistryInterface;
 use Setono\SyliusImagePlugin\Event\ProcessingStartedEvent;
 use Setono\SyliusImagePlugin\Message\Command\ProcessImage;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
-use Setono\SyliusImagePlugin\Model\VariantConfigurationInterface;
-use Setono\SyliusImagePlugin\Provider\ProcessableImageResourceProviderInterface;
-use Setono\SyliusImagePlugin\Repository\VariantConfigurationRepositoryInterface;
+use Setono\SyliusImagePlugin\Model\PresetConfigurationInterface;
+use Setono\SyliusImagePlugin\Repository\PresetConfigurationRepositoryInterface;
 use Setono\SyliusImagePlugin\Synchronizer\VariantConfigurationSynchronizerInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Symfony\Component\Console\Command\Command;
@@ -38,7 +38,7 @@ final class ProcessCommand extends Command
     protected static $defaultName = 'setono:sylius-image:process';
 
     /** @var string|null */
-    protected static $defaultDescription = 'Processes all image variants';
+    protected static $defaultDescription = 'Processes configured image resources';
 
     /**
      * It is set in the initialize method which is called before the execute method
@@ -47,15 +47,15 @@ final class ProcessCommand extends Command
      */
     private SymfonyStyle $io;
 
-    private ProcessableImageResourceProviderInterface $processableImageResourceProvider;
+    private ImageResourceRegistryInterface $imageResourceRegistry;
 
     private MessageBusInterface $commandBus;
 
-    private VariantCollectionInterface $variantCollection;
+    private PresetRegistryInterface $presetRegistry;
 
     private EventDispatcherInterface $eventDispatcher;
 
-    private VariantConfigurationRepositoryInterface $variantConfigurationRepository;
+    private PresetConfigurationRepositoryInterface $presetConfigurationRepository;
 
     private VariantConfigurationSynchronizerInterface $variantConfigurationSynchronizer;
 
@@ -78,29 +78,29 @@ final class ProcessCommand extends Command
 
     public function __construct(
         ManagerRegistry $managerRegistry,
-        ProcessableImageResourceProviderInterface $processableImageResourceProvider,
+        ImageResourceRegistryInterface $imageResourceRegistry,
         MessageBusInterface $commandBus,
-        VariantCollectionInterface $variantCollection,
+        PresetRegistryInterface $presetRegistry,
         EventDispatcherInterface $eventDispatcher,
-        VariantConfigurationRepositoryInterface $variantConfigurationRepository,
+        PresetConfigurationRepositoryInterface $presetConfigurationRepository,
         VariantConfigurationSynchronizerInterface $variantConfigurationSynchronizer,
         int $maximumNumberOfTries = 10
     ) {
         parent::__construct();
 
         $this->managerRegistry = $managerRegistry;
-        $this->processableImageResourceProvider = $processableImageResourceProvider;
+        $this->imageResourceRegistry = $imageResourceRegistry;
         $this->commandBus = $commandBus;
-        $this->variantCollection = $variantCollection;
+        $this->presetRegistry = $presetRegistry;
         $this->eventDispatcher = $eventDispatcher;
-        $this->variantConfigurationRepository = $variantConfigurationRepository;
+        $this->presetConfigurationRepository = $presetConfigurationRepository;
         $this->variantConfigurationSynchronizer = $variantConfigurationSynchronizer;
         $this->maximumNumberOfTries = $maximumNumberOfTries;
     }
 
     protected function configure(): void
     {
-        $this->addOption(self::OPTION_SYNC_CONFIGURATION, null, InputOption::VALUE_NONE, 'Sync plugin configuration with database');
+        $this->addOption(self::OPTION_SYNC_CONFIGURATION, null, InputOption::VALUE_NONE, 'Sync preset configuration with database');
         $this->addOption(SynchronizeVariantConfigurationCommand::OPTION_SKIP_SETUP, null, InputOption::VALUE_NONE, sprintf('Skip setup - only applicable if \'--%s\' flag is set', self::OPTION_SYNC_CONFIGURATION));
         $this->addOption(self::OPTION_LIMIT, 'l', InputOption::VALUE_REQUIRED, 'Limit for how many images to process per resource. Default: unlimited');
         $this->addOption(self::OPTION_MAX_PENDING, 'm', InputOption::VALUE_REQUIRED, 'Limit for pending images. If there are more pending images than the provided value, no more images will be added. Limit is per resource. Default: unlimited');
@@ -142,20 +142,15 @@ EOF, self::OPTION_SYNC_CONFIGURATION, SynchronizeVariantConfigurationCommand::ge
             $this->maxPendingImages = $maxPendingImages;
         }
 
-        $availableResources = [];
-        foreach ($this->processableImageResourceProvider->getResources() as $imageResource) {
-            $availableResources[$imageResource->resourceKey] = $imageResource;
-        }
-
         /** @var string[]|object $chosenResources */
         $chosenResources = $input->getArgument(self::ARGUMENT_RESOURCES);
 
         if (!is_array($chosenResources) || empty($chosenResources)) {
-            $this->processableImageResources = $availableResources;
+            $this->processableImageResources = $this->imageResourceRegistry->all();
         } else {
             foreach ($chosenResources as $resourceKey) {
-                if (isset($availableResources[$resourceKey])) {
-                    $this->processableImageResources[$resourceKey] = $availableResources[$resourceKey];
+                if ($this->imageResourceRegistry->has($resourceKey)) {
+                    $this->processableImageResources[$resourceKey] = $this->imageResourceRegistry->get($resourceKey);
                 } else {
                     $this->io->warning(sprintf('The requested resource \'%s\' is not available', $resourceKey));
                 }
@@ -172,7 +167,7 @@ EOF, self::OPTION_SYNC_CONFIGURATION, SynchronizeVariantConfigurationCommand::ge
         }
 
         try {
-            if ($this->variantCollection->isEmpty()) {
+            if ($this->presetRegistry->isEmpty()) {
                 $this->io->writeln('No variants configured');
 
                 return 0;
@@ -192,20 +187,19 @@ EOF, self::OPTION_SYNC_CONFIGURATION, SynchronizeVariantConfigurationCommand::ge
                 SynchronizeVariantConfigurationCommand::reportSynchronizationResult($synchronizationResult, $this->io);
             }
 
-            $variantConfiguration = $this->variantConfigurationRepository->findNewest();
-            if (null === $variantConfiguration) {
-                $this->io->writeln('No variant configuration saved in the database. Run with --sync-configuration instead.');
+            $presetConfiguration = $this->presetConfigurationRepository->findNewest();
+            if (null === $presetConfiguration) {
+                $this->io->writeln('No preset configuration saved in the database. Run with --sync-configuration instead.');
 
                 return 0;
             }
 
-            $variantCollection = $variantConfiguration->getVariantCollection();
-            Assert::notNull($variantCollection);
+            $presets = $presetConfiguration->getPresets();
 
-            $this->eventDispatcher->dispatch(new ProcessingStartedEvent($variantCollection));
+            $this->eventDispatcher->dispatch(new ProcessingStartedEvent($presets));
 
             foreach ($this->processableImageResources as $processableResource) {
-                $this->processResource($processableResource, $variantConfiguration);
+                $this->processResource($processableResource, $presetConfiguration);
             }
 
             return 0;
@@ -214,14 +208,14 @@ EOF, self::OPTION_SYNC_CONFIGURATION, SynchronizeVariantConfigurationCommand::ge
         }
     }
 
-    private function processResource(ImageResource $resource, VariantConfigurationInterface $variantConfiguration): void
+    private function processResource(ImageResource $resource, PresetConfigurationInterface $variantConfiguration): void
     {
-        $this->io->section(sprintf('Processing resource: %s', $resource->className));
+        $this->io->section(sprintf('Processing resource: %s', $resource->class));
 
-        $manager = $this->getManager($resource->className);
+        $manager = $this->getManager($resource->class);
 
         /** @var ObjectRepository|EntityRepository $repository */
-        $repository = $manager->getRepository($resource->className);
+        $repository = $manager->getRepository($resource->class);
         Assert::isInstanceOf($repository, EntityRepository::class);
 
         if ($this->maxPendingImages !== null) {
@@ -252,7 +246,7 @@ EOF, self::OPTION_SYNC_CONFIGURATION, SynchronizeVariantConfigurationCommand::ge
     private function getImages(
         EntityRepository $repository,
         ObjectManager $manager,
-        VariantConfigurationInterface $variantConfiguration,
+        PresetConfigurationInterface $variantConfiguration,
         int $resultsPerPage = 50
     ): iterable {
         $now = new \DateTimeImmutable();

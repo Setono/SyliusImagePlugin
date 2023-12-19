@@ -28,10 +28,10 @@ trait ImageTrait
     protected ?DateTimeInterface $processingRetryAt = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Setono\SyliusImagePlugin\Model\VariantConfigurationInterface")
-     * @ORM\JoinColumn(name="variant_configuration", referencedColumnName="id")
+     * @ORM\ManyToOne(targetEntity="Setono\SyliusImagePlugin\Model\PresetConfigurationInterface")
+     * @ORM\JoinColumn(name="preset_configuration", referencedColumnName="id")
      */
-    protected ?VariantConfigurationInterface $variantConfiguration = null;
+    protected ?PresetConfigurationInterface $presetConfiguration = null;
 
     /**
      * @ORM\Column(type="array", nullable=true)
@@ -81,14 +81,14 @@ trait ImageTrait
         $this->processingRetryAt = $processingRetryAt;
     }
 
-    public function getVariantConfiguration(): ?VariantConfigurationInterface
+    public function getPresetConfiguration(): ?PresetConfigurationInterface
     {
-        return $this->variantConfiguration;
+        return $this->presetConfiguration;
     }
 
-    public function setVariantConfiguration(?VariantConfigurationInterface $variantConfiguration): void
+    public function setPresetConfiguration(?PresetConfigurationInterface $presetConfiguration): void
     {
-        $this->variantConfiguration = $variantConfiguration;
+        $this->presetConfiguration = $presetConfiguration;
     }
 
     public function getMetadata(): array

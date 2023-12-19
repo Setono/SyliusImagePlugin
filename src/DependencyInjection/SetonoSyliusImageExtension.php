@@ -20,12 +20,13 @@ final class SetonoSyliusImageExtension extends AbstractResourceExtension impleme
         /**
          * @psalm-suppress PossiblyNullArgument
          *
-         * @var array{listeners: array{enabled: bool, update_image: bool, remove_processed_images: bool, purge_liip_imagine_cache: bool}, resources: array<string, mixed>, public_processed_path: string, available_variants: array, image_resources: array<string, array{resource: string, variants: list<string>}>} $config
+         * @var array{default_image_generator: string, listeners: array{enabled: bool, update_image: bool, remove_processed_images: bool, purge_liip_imagine_cache: bool}, resources: array<string, mixed>, public_processed_path: string, presets: array, image_resources: array<string, array{resource: string, presets: list<string>}>} $config
          */
         $config = $this->processConfiguration($this->getConfiguration([], $container), $configs);
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
 
-        $container->setParameter('setono_sylius_image.available_variants', $config['available_variants']);
+        $container->setParameter('setono_sylius_image.default_image_generator', $config['default_image_generator']);
+        $container->setParameter('setono_sylius_image.presets', $config['presets']); // todo somewhere we need to check that the image generator defined on a preset exists
         $container->setParameter('setono_sylius_image.image_resources', $config['image_resources']);
 
         $pathParamName = 'setono_sylius_image.public_processed_path';

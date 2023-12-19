@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusImagePlugin\EventSubscriber;
 
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
+use Setono\SyliusImagePlugin\Config\Preset;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
 use Setono\SyliusImagePlugin\Workflow\ProcessWorkflow;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -17,7 +18,11 @@ final class PurgeLiipImagineCacheSubscriber implements EventSubscriberInterface
 
     public static function getSubscribedEvents(): array
     {
-        $event = sprintf('workflow.%s.completed.%s', ProcessWorkflow::NAME, ProcessWorkflow::TRANSITION_FINISH);
+        $event = sprintf(
+            'workflow.%s.completed.%s',
+            ProcessWorkflow::NAME,
+            ProcessWorkflow::TRANSITION_FINISH
+        );
 
         return [
             $event => 'purgeCache',
@@ -40,18 +45,13 @@ final class PurgeLiipImagineCacheSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $variantConfiguration = $image->getVariantConfiguration();
-        if ($variantConfiguration === null) {
+        $presetConfiguration = $image->getPresetConfiguration();
+        if (null === $presetConfiguration) {
             return;
         }
 
-        $variantCollection = $variantConfiguration->getVariantCollection();
-        if ($variantCollection === null) {
-            return;
-        }
+        $presets = array_map(static function (Preset $preset) { return $preset->name; }, $presetConfiguration->getPresets());
 
-        $variants = array_keys($variantCollection->toArray());
-
-        $this->cacheManager->remove($path, $variants);
+        $this->cacheManager->remove($path, $presets);
     }
 }

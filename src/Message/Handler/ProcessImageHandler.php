@@ -8,15 +8,14 @@ use Doctrine\ORM\OptimisticLockException;
 use Doctrine\Persistence\ManagerRegistry;
 use Gaufrette\FilesystemInterface;
 use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
-use Setono\SyliusImagePlugin\Config\ImageResourceCollectionInterface;
-use Setono\SyliusImagePlugin\Config\Variant;
+use Setono\SyliusImagePlugin\Config\ImageResourceRegistryInterface;
+use Setono\SyliusImagePlugin\Config\Preset;
 use Setono\SyliusImagePlugin\Exception\ImageProcessingFailedException;
 use Setono\SyliusImagePlugin\File\ImageVariantFile;
+use Setono\SyliusImagePlugin\ImageGenerator\ImageGeneratorRegistryInterface;
 use Setono\SyliusImagePlugin\Message\Command\ProcessImage;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
-use Setono\SyliusImagePlugin\Registry\VariantGeneratorRegistryInterface;
-use Setono\SyliusImagePlugin\Repository\VariantConfigurationRepositoryInterface;
-use Setono\SyliusImagePlugin\VariantGenerator\VariantGeneratorInterface;
+use Setono\SyliusImagePlugin\Repository\PresetConfigurationRepositoryInterface;
 use Setono\SyliusImagePlugin\Workflow\ProcessWorkflow;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
@@ -27,9 +26,9 @@ final class ProcessImageHandler implements MessageHandlerInterface
 {
     use ORMManagerTrait;
 
-    private VariantGeneratorRegistryInterface $variantGeneratorRegistry;
+    private ImageGeneratorRegistryInterface $imageGeneratorRegistry;
 
-    private VariantConfigurationRepositoryInterface $variantConfigurationRepository;
+    private PresetConfigurationRepositoryInterface $presetConfigurationRepository;
 
     private Registry $workflowRegistry;
 
@@ -37,24 +36,24 @@ final class ProcessImageHandler implements MessageHandlerInterface
 
     private FilesystemInterface $processedImagesFilesystem;
 
-    private ImageResourceCollectionInterface $imageResourceCollection;
+    private ImageResourceRegistryInterface $imageResourceRegistry;
 
     public function __construct(
         ManagerRegistry $managerRegistry,
-        VariantGeneratorRegistryInterface $variantGeneratorRegistry,
-        VariantConfigurationRepositoryInterface $variantConfigurationRepository,
-        ImageResourceCollectionInterface $imageResourceCollection,
+        ImageGeneratorRegistryInterface $imageGeneratorRegistry,
+        PresetConfigurationRepositoryInterface $presetConfigurationRepository,
+        ImageResourceRegistryInterface $imageResourceRegistry,
         Registry $workflowRegistry,
         FilesystemInterface $uploadedImagesFilesystem,
         FilesystemInterface $processedImagesFilesystem
     ) {
         $this->managerRegistry = $managerRegistry;
-        $this->variantGeneratorRegistry = $variantGeneratorRegistry;
-        $this->variantConfigurationRepository = $variantConfigurationRepository;
+        $this->imageGeneratorRegistry = $imageGeneratorRegistry;
+        $this->presetConfigurationRepository = $presetConfigurationRepository;
         $this->workflowRegistry = $workflowRegistry;
         $this->uploadedImagesFilesystem = $uploadedImagesFilesystem;
         $this->processedImagesFilesystem = $processedImagesFilesystem;
-        $this->imageResourceCollection = $imageResourceCollection;
+        $this->imageResourceRegistry = $imageResourceRegistry;
     }
 
     public function __invoke(ProcessImage $message): void
@@ -68,27 +67,10 @@ final class ProcessImageHandler implements MessageHandlerInterface
         }
         Assert::isInstanceOf($image, ImageInterface::class);
 
-        $variantConfiguration = $this->variantConfigurationRepository->findNewest();
-        if (null === $variantConfiguration) {
+        $presetConfiguration = $this->presetConfigurationRepository->findNewest();
+        if (null === $presetConfiguration) {
+            // todo why don't we just create one then?
             throw new UnrecoverableMessageHandlingException('No variant configuration saved in the database');
-        }
-
-        $variantCollection = $variantConfiguration->getVariantCollection();
-        Assert::notNull($variantCollection);
-
-        /**
-         * todo This is just a check - I am not sure this check should be here
-         *
-         * @var Variant $variant
-         */
-        foreach ($variantCollection as $variant) {
-            if (!$this->variantGeneratorRegistry->has($variant->generator)) {
-                throw new \RuntimeException(sprintf(
-                    'The variant "%s" has defined its generator to be "%s", but no such generator has been registered.',
-                    $variant->name,
-                    $variant->generator
-                ));
-            }
         }
 
         /**
@@ -111,11 +93,23 @@ final class ProcessImageHandler implements MessageHandlerInterface
         try {
             $imageFile = $this->uploadedImagesFilesystem->get((string) $image->getPath());
 
-            $imageResource = $this->imageResourceCollection->get($image);
+            $imageResource = $this->imageResourceRegistry->get($image);
 
-            /** @var VariantGeneratorInterface $variantGenerator */
-            foreach ($this->variantGeneratorRegistry as $variantGenerator) {
-                foreach ($variantGenerator->generate($image, $imageFile, $imageResource->variantCollection) as $file) {
+            foreach ($this->imageGeneratorRegistry->all() as $imageGenerator) {
+                $presets = [];
+                foreach ($imageResource->presets as $preset) {
+                    $tmpPreset = clone $preset;
+                    $tmpPreset->formats = [];
+
+                    foreach ($preset->formats as $format) {
+                        if($imageGenerator->supportsFormat($format)) {
+                            $tmpPreset->formats[] = $format;
+                        }
+                    }
+
+                    $presets[] = $tmpPreset;
+                }
+                foreach ($imageGenerator->generate($image, $imageFile, $presets) as $file) {
                     $this->processedImagesFilesystem->write(sprintf(
                         '%s/%s',
                         $file->getVariant(),
@@ -126,7 +120,7 @@ final class ProcessImageHandler implements MessageHandlerInterface
                 }
             }
 
-            $image->setVariantConfiguration($variantConfiguration);
+            $image->setPresetConfiguration($presetConfiguration);
 
             $workflow->apply($image, ProcessWorkflow::TRANSITION_FINISH);
             $manager->flush();

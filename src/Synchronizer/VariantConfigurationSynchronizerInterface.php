@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusImagePlugin\Synchronizer;
 
-use Setono\SyliusImagePlugin\VariantGenerator\VariantGeneratorInterface;
+use Setono\SyliusImagePlugin\ImageGenerator\ImageGeneratorInterface;
 
 interface VariantConfigurationSynchronizerInterface
 {
@@ -14,7 +14,7 @@ interface VariantConfigurationSynchronizerInterface
      *
      * @param bool $runSetup If true, the `setup` method on the relevant VariantGenerators will be called
      *
-     * @see VariantGeneratorInterface::setup();
+     * @see ImageGeneratorInterface::setup();
      */
     public function synchronize(bool $runSetup = true): VariantConfigurationSynchronizationResultInterface;
 }

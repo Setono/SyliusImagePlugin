@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Setono\SyliusImagePlugin\VariantGenerator;
+namespace Setono\SyliusImagePlugin\ImageGenerator;
 
 class SetupResult implements SetupResultInterface
 {
     /** @var list<string> */
     private array $messages = [];
 
-    private VariantGeneratorInterface $generator;
+    private ImageGeneratorInterface $generator;
 
-    public function __construct(VariantGeneratorInterface $generator)
+    public function __construct(ImageGeneratorInterface $generator)
     {
         $this->generator = $generator;
     }
 
-    public function getGenerator(): VariantGeneratorInterface
+    public function getGenerator(): ImageGeneratorInterface
     {
         return $this->generator;
     }

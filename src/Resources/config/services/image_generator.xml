@@ -2,14 +2,19 @@
 <container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="setono_sylius_image.variant_generator.cloudflare"
-                 class="Setono\SyliusImagePlugin\VariantGenerator\CloudflareVariantGenerator">
+        <service id="setono_sylius_image.image_generator.registry"
+                 class="Setono\SyliusImagePlugin\ImageGenerator\ImageGeneratorRegistry">
+            <argument>%setono_sylius_image.default_image_generator%</argument>
+        </service>
+
+        <service id="setono_sylius_image.image_generator.cloudflare"
+                 class="Setono\SyliusImagePlugin\ImageGenerator\CloudflareImageGenerator">
             <argument type="service" id="setono_sylius_image.client.cloudflare"/>
             <argument type="service" id="http_client"/>
             <argument type="service" id="mime_types"/>
             <argument type="service" id="filesystem"/>
 
-            <tag name="setono_sylius_image.variant_generator"/>
+            <tag name="setono_sylius_image.image_generator"/>
         </service>
     </services>
 </container>

@@ -6,11 +6,15 @@ namespace Setono\SyliusImagePlugin\Config;
 
 use Setono\SyliusImagePlugin\Model\ImageInterface;
 
-/**
- * @extends \Traversable<array-key, ImageResource>
- */
-interface ImageResourceCollectionInterface extends \Traversable
+interface ImageResourceRegistryInterface
 {
+    /**
+     * Returns all the registered image resources, indexed by name
+     *
+     * @return array<string, ImageResource>
+     */
+    public function all(): array;
+
     /**
      * @param string|ImageInterface|ImageResource $resource Can be the sylius resource key, the FQN classname, an instance of ImageInterface or an ImageResource
      */
@@ -20,4 +24,9 @@ interface ImageResourceCollectionInterface extends \Traversable
      * @param string|ImageInterface $resource Can be the sylius resource key, the FQN classname or an instance of ImageInterface
      */
     public function get($resource): ImageResource;
+
+    /**
+     * Returns true if there are no registered image resources
+     */
+    public function isEmpty(): bool;
 }

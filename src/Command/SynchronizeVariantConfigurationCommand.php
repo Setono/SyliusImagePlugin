@@ -98,10 +98,10 @@ EOF
 
         foreach ($synchronizeResult->getSetupResults() as $setupResult) {
             if ($setupResult->hasMessages()) {
-                $io->writeln(sprintf('Messages from \'%s\' generator setup', $setupResult->getGenerator()->getName()));
+                $io->writeln('Messages from generator setup');
                 $io->listing($setupResult->getMessages());
             } else {
-                $io->writeln(sprintf('Nothing to report from \'%s\'', $setupResult->getGenerator()->getName()));
+                $io->writeln('Nothing to report from generator');
             }
         }
     }

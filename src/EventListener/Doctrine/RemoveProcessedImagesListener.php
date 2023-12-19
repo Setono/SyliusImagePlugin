@@ -6,24 +6,22 @@ namespace Setono\SyliusImagePlugin\EventListener\Doctrine;
 
 use Doctrine\Persistence\Event\LifecycleEventArgs;
 use Gaufrette\FilesystemInterface;
-use Setono\SyliusImagePlugin\Config\Variant;
 use Setono\SyliusImagePlugin\File\ImageVariantFile;
 use Setono\SyliusImagePlugin\Model\ImageInterface;
-use Setono\SyliusImagePlugin\Repository\VariantConfigurationRepositoryInterface;
-use Webmozart\Assert\Assert;
+use Setono\SyliusImagePlugin\Repository\PresetConfigurationRepositoryInterface;
 
 final class RemoveProcessedImagesListener
 {
     private FilesystemInterface $processedImagesFilesystem;
 
-    private VariantConfigurationRepositoryInterface $variantConfigurationRepository;
+    private PresetConfigurationRepositoryInterface $presetConfigurationRepository;
 
     public function __construct(
         FilesystemInterface $processedImagesFilesystem,
-        VariantConfigurationRepositoryInterface $variantConfigurationRepository
+        PresetConfigurationRepositoryInterface $presetConfigurationRepository
     ) {
         $this->processedImagesFilesystem = $processedImagesFilesystem;
-        $this->variantConfigurationRepository = $variantConfigurationRepository;
+        $this->presetConfigurationRepository = $presetConfigurationRepository;
     }
 
     public function postRemove(LifecycleEventArgs $eventArgs): void
@@ -38,18 +36,14 @@ final class RemoveProcessedImagesListener
             return;
         }
 
-        $variantConfiguration = $this->variantConfigurationRepository->findNewest();
-        if (null === $variantConfiguration) {
+        $presetConfiguration = $this->presetConfigurationRepository->findNewest();
+        if (null === $presetConfiguration) {
             return;
         }
 
-        $variantCollection = $variantConfiguration->getVariantCollection();
-        Assert::notNull($variantCollection);
-
         $deletablePaths = [];
 
-        /** @var Variant $item */
-        foreach ($variantCollection as $item) {
+        foreach ($presetConfiguration->getPresets() as $item) {
             $deletablePaths = [sprintf('%s/%s', $item->name, $path)];
             foreach (ImageVariantFile::getNextGenerationFormatsAsExtensions() as $extension) {
                 $deletablePaths[] = sprintf('%s/%s', $item->name, ImageVariantFile::replaceExtension($path, $extension));

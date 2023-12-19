@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Setono\SyliusImagePlugin;
 
-use Setono\SyliusImagePlugin\DependencyInjection\Compiler\RegisterVariantGeneratorsPass;
+use Setono\SyliusImagePlugin\DependencyInjection\Compiler\RegisterImageGeneratorsPass;
+use Setono\SyliusImagePlugin\DependencyInjection\Compiler\UpdateImageResourcesParameterPass;
 use Sylius\Bundle\CoreBundle\Application\SyliusPluginTrait;
 use Sylius\Bundle\ResourceBundle\AbstractResourceBundle;
 use Sylius\Bundle\ResourceBundle\SyliusResourceBundle;
@@ -25,6 +26,7 @@ final class SetonoSyliusImagePlugin extends AbstractResourceBundle
     {
         parent::build($container);
 
-        $container->addCompilerPass(new RegisterVariantGeneratorsPass());
+        $container->addCompilerPass(new RegisterImageGeneratorsPass());
+        $container->addCompilerPass(new UpdateImageResourcesParameterPass());
     }
 }

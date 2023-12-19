@@ -10,7 +10,7 @@
                     <factory service="knp_gaufrette.filesystem_map" method="get" />
                 </service>
             </argument>
-            <argument type="service" id="setono_sylius_image.repository.variant_configuration"/>
+            <argument type="service" id="setono_sylius_image.repository.preset_configuration"/>
 
             <tag name="doctrine.event_listener" event="postRemove"/>
         </service>

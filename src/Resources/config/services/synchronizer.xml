@@ -4,11 +4,11 @@
     <services>
         <service id="setono_sylius_image.synchronizer.variant_configuration"
                  class="Setono\SyliusImagePlugin\Synchronizer\VariantConfigurationSynchronizer">
-            <argument type="service" id="setono_sylius_image.factory.variant_configuration"/>
-            <argument type="service" id="setono_sylius_image.repository.variant_configuration"/>
-            <argument type="service" id="setono_sylius_image.config.variant_collection"/>
+            <argument type="service" id="setono_sylius_image.factory.preset_configuration"/>
+            <argument type="service" id="setono_sylius_image.repository.preset_configuration"/>
+            <argument type="service" id="setono_sylius_image.config.preset_registry"/>
             <argument type="service" id="doctrine"/>
-            <argument type="service" id="setono_sylius_image.registry.variant_generator" />
+            <argument type="service" id="setono_sylius_image.image_generator.registry" />
         </service>
     </services>
 </container>

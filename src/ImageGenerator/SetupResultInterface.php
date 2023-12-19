@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Setono\SyliusImagePlugin\VariantGenerator;
+namespace Setono\SyliusImagePlugin\ImageGenerator;
 
 interface SetupResultInterface
 {
-    public function getGenerator(): VariantGeneratorInterface;
+    public function getGenerator(): ImageGeneratorInterface;
 
     /** @return list<string> */
     public function getMessages(): array;
