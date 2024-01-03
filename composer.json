@@ -76,12 +76,8 @@
         "sort-packages": true
     },
     "scripts": {
-        "analyse": [
-            "@ensure-test-container-exists",
-            "psalm"
-        ],
+        "analyse": "psalm",
         "check-style": "ecs check",
-        "ensure-test-container-exists": "[[ -f tests/Application/var/cache/test/Tests_Setono_SyliusImagePlugin_Application_KernelTestDebugContainer.xml ]] || tests/Application/bin/console cache:warmup --env=test",
         "fix-style": "ecs check --fix",
         "phpunit": "phpunit"
     }

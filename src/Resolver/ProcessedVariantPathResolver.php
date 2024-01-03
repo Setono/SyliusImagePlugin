@@ -30,7 +30,7 @@ final class ProcessedVariantPathResolver implements ProcessedVariantPathResolver
     {
         $candidates = [];
 
-        $request = $this->requestStack->getMasterRequest();
+        $request = $this->requestStack->getMainRequest();
         if (null !== $request) {
             $acceptHeaders = $request->headers->get('Accept');
             if (null !== $acceptHeaders) {
